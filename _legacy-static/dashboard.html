@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FABUS - Espace Élève</title>
+    
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="./css/styles.css">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: var(--bg-secondary); /* Softer background for dashboard */
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(5, 150, 105, 0.05);
+            color: var(--fabus-green);
+        }
+        
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            max-width: 1200px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--fabus-green-light);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .notification-btn {
+            background: white;
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+        
+        .notification-btn:hover {
+            color: var(--fabus-green);
+            border-color: var(--fabus-green);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--danger);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        /* Dashboard Specific Cards */
+        .card-prochaine-etape {
+            background: linear-gradient(135deg, var(--fabus-green), var(--fabus-green-dark));
+            color: white;
+            border: none;
+        }
+        
+        .card-prochaine-etape h3, .card-prochaine-etape p {
+            color: white;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+        }
+
+        .gamification-banner {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none; /* Mobile menu logic would go here via JS */
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" style="display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.5rem; color: var(--text-primary);">
+                <i class="fa-solid fa-car-side" style="color: var(--fabus-green);"></i> FABUS
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active"><i class="fa-solid fa-house"></i> Tableau de bord</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-book"></i> Mes Cours</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendrier</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-folder-open"></i> Mon Dossier Admin</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-video"></i> Visioconférence</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-store"></i> Boutique</a>
+            <a href="#" class="nav-item"><i class="fa-brands fa-rocketchat"></i> Mon Espace (Social)</a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid var(--border-color);">
+            <a href="#" class="nav-item" style="color: var(--danger);"><i class="fa-solid fa-arrow-right-from-bracket"></i> Déconnexion</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar animate-fade-up">
+            <div>
+                <h1 style="font-size: 2rem; margin-bottom: 0;">Bonjour Ahmadou 👋</h1>
+                <p class="text-muted-color">Voici un résumé de votre formation aujourd'hui.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="notification-btn">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notification-badge"></span>
+                </button>
+                <div class="user-profile">
+                    <div class="avatar">A</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Gamification Banner -->
+        <div class="gamification-banner animate-fade-up delay-100">
+            <div style="font-size: 2rem;">🏆</div>
+            <div>
+                <h4 style="margin-bottom: 2px; color: var(--warning);">7 jours consécutifs !</h4>
+                <p style="margin-bottom: 0; font-size: 0.875rem; color: var(--text-secondary);">Vous êtes sur une belle lancée. Révisez encore aujourd'hui pour débloquer le badge "Expert Code".</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 mb-8">
+            <!-- Prochaine Étape (takes 2 columns on wide screens) -->
+            <div class="card card-prochaine-etape animate-fade-up delay-200" style="grid-column: span 2;">
+                <span class="badge" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 1rem;">PROCHAINE ÉTAPE</span>
+                <div class="flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.75rem; margin-bottom: 0.5rem;">📅 Cours de Code : Les Intersections</h2>
+                        <p style="opacity: 0.9; margin-bottom: 1.5rem;">Aujourd'hui, de 21h00 à 22h30 en visioconférence.</p>
+                        <div class="flex items-center gap-2 mb-4" style="background: rgba(0,0,0,0.1); display: inline-flex; padding: 0.5rem 1rem; border-radius: var(--radius-full); font-size: 0.875rem;">
+                            <img src="https://i.pravatar.cc/150?img=11" alt="Moniteur" style="width: 24px; height: 24px; border-radius: 50%;">
+                            <span>Moniteur : <strong>Cheikh Fall</strong></span>
+                        </div>
+                    </div>
+                    <button class="btn" style="background: white; color: var(--fabus-green-dark); box-shadow: var(--shadow-lg);">
+                        <i class="fa-solid fa-video"></i> Rejoindre la classe
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mon Dossier -->
+            <div class="card stat-card animate-fade-up delay-300 flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 style="font-size: 1.1rem; margin: 0;">Dossier Permis</h3>
+                        <span class="badge badge-warning">En cours</span>
+                    </div>
+                    <ul style="font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <li><i class="fa-solid fa-check-circle" style="color: var(--success); margin-right: 8px;"></i> Inscription auto-école</li>
+                        <li><i class="fa-solid fa-check-circle" style="color: var(--success); margin-right: 8px;"></i> Pièce d'identité validée</li>
+                        <li><i class="fa-regular fa-circle" style="color: var(--text-muted); margin-right: 8px;"></i> <strong>Certificat médical</strong></li>
+                        <li><i class="fa-regular fa-circle" style="color: var(--text-muted); margin-right: 8px;"></i> <strong>Timbre fiscal</strong></li>
+                    </ul>
+                </div>
+                <button class="btn btn-outline w-full mt-4" style="font-size: 0.875rem; padding: 0.5rem;"><i class="fa-solid fa-map-location-dot"></i> Où aller à Dakar ?</button>
+            </div>
+        </div>
+
+        <h3 class="mb-4 animate-fade-up delay-300">Votre progression globale</h3>
+        <div class="grid grid-cols-2 mb-8 animate-fade-up delay-400">
+            <!-- Progression Code -->
+            <div class="card stat-card">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="icon-box" style="margin-bottom: 0; width: 40px; height: 40px; font-size: 1rem;"><i class="fa-solid fa-book-open"></i></div>
+                        <h4 style="margin: 0;">Code de la route</h4>
+                    </div>
+                    <span style="font-weight: 700; color: var(--fabus-green);">80%</span>
+                </div>
+                <div class="progress-container mb-4">
+                    <div class="progress-bar" style="width: 80%;"></div>
+                </div>
+                <a href="#" class="text-sm font-semibold text-muted-color" style="color: var(--info);">Reprendre : Leçon 8 - Le Stationnement <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <!-- Progression Conduite -->
+            <div class="card stat-card">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="icon-box" style="margin-bottom: 0; width: 40px; height: 40px; font-size: 1rem; background: rgba(59, 130, 246, 0.1); color: var(--info);"><i class="fa-solid fa-steering-wheel"></i></div>
+                        <h4 style="margin: 0;">Heures de conduite</h4>
+                    </div>
+                    <span style="font-weight: 700; color: var(--info);">3 / 15 h</span>
+                </div>
+                <div class="progress-container mb-4">
+                    <div class="progress-bar" style="width: 20%; background: var(--info);"></div>
+                </div>
+                <a href="#" class="text-sm font-semibold text-muted-color" style="color: var(--fabus-green);">Réserver ma prochaine heure <i class="fa-solid fa-calendar-plus"></i></a>
+            </div>
+        </div>
+
+        <!-- Assistant AI / Payments -->
+        <div class="grid grid-cols-2 animate-fade-up delay-400">
+            <div class="card flex items-center justify-between" style="border-left: 4px solid var(--warning);">
+                <div>
+                    <h4 style="margin-bottom: 0.25rem;">Prochain Paiement</h4>
+                    <p class="text-sm text-muted-color mb-0">Échéance : 15 Septembre</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="font-bold">25 000 F</span>
+                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Payer via Wave</button>
+                </div>
+            </div>
+
+            <div class="card flex items-center gap-4" style="background: linear-gradient(to right, var(--bg-primary), rgba(13, 148, 136, 0.05)); border-color: rgba(13, 148, 136, 0.2);">
+                <div class="avatar" style="background: var(--fabus-turquoise);"><i class="fa-solid fa-robot"></i></div>
+                <div>
+                    <h4 style="margin-bottom: 0.25rem;">Assistant FABUS</h4>
+                    <p class="text-sm text-muted-color mb-0" style="font-style: italic;">"Que puis-je faire pour vous aujourd'hui Ahmadou ?"</p>
+                </div>
+                <button class="btn btn-outline" style="margin-left: auto; border-color: var(--fabus-turquoise); color: var(--fabus-turquoise); padding: 0.5rem 1rem;"><i class="fa-solid fa-message"></i> Poser une question</button>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>
