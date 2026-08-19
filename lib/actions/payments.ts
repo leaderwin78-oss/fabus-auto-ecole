@@ -43,12 +43,32 @@ export async function markPaymentPaid(paymentId: string): Promise<ActionResult> 
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data: payment, error } = await supabase
     .from("payments")
     .update({ status: "success", paid_at: new Date().toISOString() })
-    .eq("id", paymentId);
+    .eq("id", paymentId)
+    .select()
+    .single();
 
   if (error) return { ok: false, error: error.message };
+
+  // Every successful payment gets a real invoice (section 14: "reçu, facture").
+  // The number is randomized rather than sequential to avoid a race between
+  // two admins marking payments paid at the same moment.
+  const invoiceNumber = `FA-${new Date().getFullYear()}-${paymentId.slice(0, 8).toUpperCase()}`;
+  const { error: invoiceError } = await supabase.from("invoices").insert({
+    organization_id: payment.organization_id,
+    student_id: payment.student_id,
+    payment_id: payment.id,
+    number: invoiceNumber,
+    amount_fcfa: payment.amount_fcfa,
+    status: "success",
+    issued_at: new Date().toISOString(),
+  });
+  if (invoiceError && invoiceError.code !== "23505") {
+    return { ok: false, error: `Paiement validé mais facture non générée : ${invoiceError.message}` };
+  }
+
   revalidatePath("/admin/payments");
   revalidatePath("/student/payments");
   return { ok: true };

@@ -7,6 +7,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/student/courses", label: "Mes Cours", icon: "fa-solid fa-book" },
   { href: "/student/calendar", label: "Calendrier", icon: "fa-solid fa-calendar-days" },
   { href: "/student/documents", label: "Mon Dossier Admin", icon: "fa-solid fa-folder-open" },
+  { href: "/student/quizzes", label: "Quiz & Examens", icon: "fa-solid fa-circle-question" },
   { href: "/student/payments", label: "Paiements", icon: "fa-solid fa-credit-card" },
   { href: "/student/messages", label: "Messages", icon: "fa-solid fa-message" },
 ];

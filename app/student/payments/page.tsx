@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PayButton } from "./PayButton";
@@ -13,11 +14,12 @@ export default async function StudentPaymentsPage() {
   const { userId } = await requireProfile();
   const supabase = await createClient();
 
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("*")
-    .eq("student_id", userId)
-    .order("created_at", { ascending: false });
+  const [{ data: payments }, { data: invoices }] = await Promise.all([
+    supabase.from("payments").select("*").eq("student_id", userId).order("created_at", { ascending: false }),
+    supabase.from("invoices").select("id, payment_id").eq("student_id", userId),
+  ]);
+
+  const invoiceByPayment = new Map((invoices ?? []).map((i) => [i.payment_id, i.id]));
 
   const totalPaid = (payments ?? []).filter((p) => p.status === "success").reduce((sum, p) => sum + p.amount_fcfa, 0);
   const totalPending = (payments ?? []).filter((p) => p.status === "pending").reduce((sum, p) => sum + p.amount_fcfa, 0);
@@ -43,15 +45,21 @@ export default async function StudentPaymentsPage() {
           <table className="data-table">
             <thead><tr><th>Date</th><th>Montant</th><th>Statut</th><th>Moyen</th><th></th></tr></thead>
             <tbody>
-              {(payments ?? []).map((p) => (
-                <tr key={p.id}>
-                  <td>{new Date(p.created_at).toLocaleDateString("fr-FR")}</td>
-                  <td>{p.amount_fcfa.toLocaleString("fr-FR")} F CFA</td>
-                  <td><span className={`badge ${STATUS_BADGE[p.status]}`}>{p.status}</span></td>
-                  <td>{p.provider}</td>
-                  <td>{p.status === "pending" && <PayButton paymentId={p.id} />}</td>
-                </tr>
-              ))}
+              {(payments ?? []).map((p) => {
+                const invoiceId = invoiceByPayment.get(p.id);
+                return (
+                  <tr key={p.id}>
+                    <td>{new Date(p.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td>{p.amount_fcfa.toLocaleString("fr-FR")} F CFA</td>
+                    <td><span className={`badge ${STATUS_BADGE[p.status]}`}>{p.status}</span></td>
+                    <td>{p.provider}</td>
+                    <td>
+                      {p.status === "pending" && <PayButton paymentId={p.id} />}
+                      {invoiceId && <Link href={`/student/invoices/${invoiceId}`} className="btn btn-secondary btn-sm">Facture</Link>}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
