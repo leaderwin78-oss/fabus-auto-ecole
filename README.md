@@ -48,6 +48,16 @@ npm install
 npm run dev
 ```
 
+### 5bis. Alternative : appliquer les migrations sans copier-coller
+
+Si vous avez la chaîne de connexion Postgres directe de votre projet
+(`postgresql://postgres:[password]@db.<ref>.supabase.co:5432/postgres`) :
+
+```
+$env:SUPABASE_DB_URL = "postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres"
+node scripts/run-migrations.mjs
+```
+
 ### 6. (Optionnel) Charger des données de démonstration
 
 Crée un super admin, deux auto-écoles avec admin/moniteur/élèves, une
@@ -63,6 +73,20 @@ aussi en fin de script). Identifiants créés :
 - `superadmin@fabus.sn`
 - `admin@teranga.fabus.sn`, `moniteur@teranga.fabus.sn`, `eleve1@teranga.fabus.sn`, `eleve2@teranga.fabus.sn`
 - `admin@baobab.fabus.sn`, `moniteur@baobab.fabus.sn`, `eleve1@baobab.fabus.sn`
+
+### 7. Vérifier que tout fonctionne réellement
+
+Avec le serveur de dev lancé (`npm run dev`) et les données de démo chargées :
+
+```
+npm run test:smoke
+```
+
+Ce script pilote un vrai navigateur (Playwright) : connexion élève/moniteur/
+admin/super admin, vérification que chaque rôle atterrit sur son propre
+tableau de bord, et surtout **vérification de l'isolation entre auto-écoles**
+(l'admin de Teranga ne doit jamais voir les élèves ou moniteurs de Baobab, et
+inversement) et qu'un élève ne peut pas accéder à `/admin` en changeant l'URL.
 
 ## Architecture
 
