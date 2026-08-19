@@ -43,7 +43,7 @@ async function main() {
   console.log("Seeding FABUS demo data...");
 
   // --- Super admin -------------------------------------------------------
-  const superAdminId = await createUser("superadmin@fabus.sn", "Super Admin FABUS", "super_admin", null);
+  await createUser("superadmin@fabus.sn", "Super Admin FABUS", "super_admin", null);
   console.log("Created super_admin: superadmin@fabus.sn");
 
   // --- Plans ---------------------------------------------------------------
@@ -163,7 +163,7 @@ async function main() {
   if (orgBError) throw new Error(orgBError.message);
 
   const adminB = await createUser("admin@baobab.fabus.sn", "Moussa Ba", "admin", orgB.id, "+221771234601");
-  const instructorB = await createUser("moniteur@baobab.fabus.sn", "Khady Diallo", "instructor", orgB.id, "+221771234602");
+  await createUser("moniteur@baobab.fabus.sn", "Khady Diallo", "instructor", orgB.id, "+221771234602");
   const studentB1 = await createUser("eleve1@baobab.fabus.sn", "Ibrahima Sarr", "student", orgB.id, "+221771234603");
   console.log("Created École Baobab: admin@baobab.fabus.sn, moniteur@baobab.fabus.sn, eleve1@baobab.fabus.sn");
 

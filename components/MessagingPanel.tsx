@@ -68,11 +68,13 @@ export function MessagingPanel({ userId, contacts }: { userId: string; contacts:
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch on mount, not a render-triggered loop
     loadConversations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refetch when the selected conversation changes
     if (activeId) loadMessages(activeId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);

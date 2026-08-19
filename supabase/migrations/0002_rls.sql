@@ -111,8 +111,13 @@ create policy courses_update on courses for update using (same_org(organization_
 create policy courses_delete on courses for delete using (same_org(organization_id) and (is_org_admin() or is_super_admin()));
 
 alter table chapters enable row level security;
+-- Mirrors courses_select: a draft course's chapters must stay invisible to
+-- students/instructors, not just the course row itself.
 create policy chapters_select on chapters for select using (
-  exists (select 1 from courses c where c.id = chapters.course_id and same_org(c.organization_id))
+  exists (
+    select 1 from courses c where c.id = chapters.course_id and same_org(c.organization_id)
+    and (c.status = 'published' or is_super_admin() or is_org_admin() or c.created_by = auth.uid())
+  )
 );
 create policy chapters_write on chapters for all using (
   exists (select 1 from courses c where c.id = chapters.course_id and same_org(c.organization_id) and (is_org_admin() or is_super_admin()))
@@ -122,7 +127,11 @@ create policy chapters_write on chapters for all using (
 
 alter table lessons enable row level security;
 create policy lessons_select on lessons for select using (
-  exists (select 1 from chapters ch join courses c on c.id = ch.course_id where ch.id = lessons.chapter_id and same_org(c.organization_id))
+  exists (
+    select 1 from chapters ch join courses c on c.id = ch.course_id
+    where ch.id = lessons.chapter_id and same_org(c.organization_id)
+    and (c.status = 'published' or is_super_admin() or is_org_admin() or c.created_by = auth.uid())
+  )
 );
 create policy lessons_write on lessons for all using (
   exists (select 1 from chapters ch join courses c on c.id = ch.course_id where ch.id = lessons.chapter_id and same_org(c.organization_id) and (is_org_admin() or is_super_admin()))
@@ -131,13 +140,18 @@ create policy lessons_write on lessons for all using (
 );
 
 alter table quizzes enable row level security;
-create policy quizzes_select on quizzes for select using (same_org(organization_id));
+create policy quizzes_select on quizzes for select using (
+  same_org(organization_id) and (status = 'published' or is_super_admin() or is_org_admin())
+);
 create policy quizzes_write on quizzes for all using (same_org(organization_id) and (is_org_admin() or is_super_admin()))
   with check (same_org(organization_id) and (is_org_admin() or is_super_admin()));
 
 alter table quiz_questions enable row level security;
 create policy quiz_questions_select on quiz_questions for select using (
-  exists (select 1 from quizzes q where q.id = quiz_questions.quiz_id and same_org(q.organization_id))
+  exists (
+    select 1 from quizzes q where q.id = quiz_questions.quiz_id and same_org(q.organization_id)
+    and (q.status = 'published' or is_super_admin() or is_org_admin())
+  )
 );
 create policy quiz_questions_write on quiz_questions for all using (
   exists (select 1 from quizzes q where q.id = quiz_questions.quiz_id and same_org(q.organization_id) and (is_org_admin() or is_super_admin()))
@@ -150,6 +164,7 @@ create policy quiz_answers_select on quiz_answers for select using (
   exists (
     select 1 from quiz_questions qq join quizzes q on q.id = qq.quiz_id
     where qq.id = quiz_answers.question_id and same_org(q.organization_id)
+    and (q.status = 'published' or is_super_admin() or is_org_admin())
   )
 );
 create policy quiz_answers_write on quiz_answers for all using (

@@ -11,7 +11,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export default async function StudentDashboardPage() {
-  const { userId, profile } = await requireProfile();
+  const { userId } = await requireProfile();
   const supabase = await createClient();
 
   const [nextAppointment, enrollments, { data: documents }, { data: pendingPayment }] = await Promise.all([
