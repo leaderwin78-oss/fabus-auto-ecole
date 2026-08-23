@@ -18,20 +18,25 @@ export async function startConversation(otherUserId: string): Promise<{ ok: bool
   const shared = (theirs ?? []).find((r) => mineIds.has(r.conversation_id));
   if (shared) return { ok: true, conversationId: shared.conversation_id };
 
-  const { data: conversation, error } = await supabase
+  // The id is generated here rather than read back from the insert on purpose:
+  // conversations_select only admits participants, and the creator does not
+  // become one until the next statement. Asking PostgREST to RETURN the new
+  // row would therefore fail the SELECT policy and abort the whole insert
+  // ("new row violates row-level security policy"), which made starting a
+  // conversation impossible. Supplying the uuid avoids the RETURNING entirely.
+  const conversationId = crypto.randomUUID();
+  const { error } = await supabase
     .from("conversations")
-    .insert({ organization_id: profile.organization_id })
-    .select()
-    .single();
-  if (error || !conversation) return { ok: false, error: error?.message ?? "Erreur." };
+    .insert({ id: conversationId, organization_id: profile.organization_id });
+  if (error) return { ok: false, error: error.message };
 
   const { error: participantsError } = await supabase.from("conversation_participants").insert([
-    { conversation_id: conversation.id, user_id: userId },
-    { conversation_id: conversation.id, user_id: otherUserId },
+    { conversation_id: conversationId, user_id: userId },
+    { conversation_id: conversationId, user_id: otherUserId },
   ]);
   if (participantsError) return { ok: false, error: participantsError.message };
 
-  return { ok: true, conversationId: conversation.id };
+  return { ok: true, conversationId };
 }
 
 export async function sendMessage(conversationId: string, body: string): Promise<ActionResult> {

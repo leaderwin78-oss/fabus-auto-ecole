@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
+import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
 
 // Admins/instructors are never self-service: only an org admin (or the
@@ -48,6 +49,71 @@ export async function inviteStaffMember(formData: FormData): Promise<ActionResul
   revalidatePath("/admin/instructors");
   revalidatePath("/admin/students");
   return { ok: true };
+}
+
+// Reviewing a self-registered moniteur's application (see applyAsInstructor in
+// lib/actions/signup.ts). Owner-only, matching every other staff-management
+// action here — admin_auto_ecole runs day-to-day operations, not hiring.
+// The privileged-column trigger in 0008_signup.sql is what makes this the ONLY
+// way `status` can move: the applicant cannot approve themselves.
+async function reviewInstructorApplication(
+  userId: string,
+  status: "active" | "rejected",
+  reason: string | null
+): Promise<ActionResult> {
+  const { userId: actorId, profile } = await requireProfile();
+  if (profile.role !== "admin" && profile.role !== "super_admin") {
+    return { ok: false, error: "Action réservée au responsable de l'auto-école." };
+  }
+
+  const supabase = await createClient();
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("id, organization_id, role, status, full_name")
+    .eq("id", userId)
+    .eq("organization_id", profile.organization_id ?? "")
+    .maybeSingle();
+
+  if (!target) return { ok: false, error: "Candidature introuvable dans votre auto-école." };
+  if (target.status !== "pending") return { ok: false, error: "Cette candidature a déjà été traitée." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ status, rejection_reason: status === "rejected" ? reason : null })
+    .eq("id", userId);
+  if (error) return { ok: false, error: error.message };
+
+  await supabase.from("notifications").insert({
+    organization_id: profile.organization_id,
+    user_id: userId,
+    type: "instructor_application_reviewed",
+    title: status === "active" ? "Candidature acceptée" : "Candidature non retenue",
+    body:
+      status === "active"
+        ? "Votre profil moniteur a été validé. Votre espace est désormais accessible."
+        : reason || "Votre candidature n'a pas été retenue.",
+    link: status === "active" ? "/instructor" : "/pending",
+  });
+
+  await logActivity({
+    organizationId: profile.organization_id,
+    actorId,
+    action: status === "active" ? "instructor.application_approved" : "instructor.application_rejected",
+    entityType: "profile",
+    entityId: userId,
+    metadata: reason ? { reason } : {},
+  });
+
+  revalidatePath("/admin/instructors");
+  return { ok: true };
+}
+
+export async function approveInstructor(userId: string): Promise<ActionResult> {
+  return reviewInstructorApplication(userId, "active", null);
+}
+
+export async function rejectInstructor(userId: string, reason: string): Promise<ActionResult> {
+  return reviewInstructorApplication(userId, "rejected", reason.trim() || null);
 }
 
 export async function removeStaffMember(userId: string): Promise<ActionResult> {

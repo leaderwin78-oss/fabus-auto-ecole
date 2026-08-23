@@ -30,6 +30,7 @@ export function MessagingPanel({ userId, contacts }: { userId: string; contacts:
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   async function loadConversations() {
@@ -81,11 +82,16 @@ export function MessagingPanel({ userId, contacts }: { userId: string; contacts:
 
   function openContact(contactId: string) {
     startTransition(async () => {
+      setError(null);
       const result = await startConversation(contactId);
-      if (result.ok && result.conversationId) {
-        await loadConversations();
-        setActiveId(result.conversationId);
+      // Failures used to be swallowed here, so a blocked action looked like a
+      // button that simply did nothing. Always say what went wrong.
+      if (!result.ok || !result.conversationId) {
+        setError(result.error ?? "Impossible d'ouvrir la conversation.");
+        return;
       }
+      await loadConversations();
+      setActiveId(result.conversationId);
     });
   }
 
@@ -94,14 +100,22 @@ export function MessagingPanel({ userId, contacts }: { userId: string; contacts:
     const body = draft;
     setDraft("");
     startTransition(async () => {
-      await sendMessage(activeId, body);
+      setError(null);
+      const result = await sendMessage(activeId, body);
+      if (!result.ok) {
+        setError(result.error ?? "Message non envoyé.");
+        setDraft(body); // don't lose what was typed
+        return;
+      }
       await loadMessages(activeId);
       await loadConversations();
     });
   }
 
   return (
-    <div className="grid grid-cols-3" style={{ gridTemplateColumns: "280px 1fr", alignItems: "start" }}>
+    <div>
+      {error && <div className="form-error-banner">{error}</div>}
+      <div className="grid grid-cols-3" style={{ gridTemplateColumns: "280px 1fr", alignItems: "start" }}>
       <div className="card card-flat" style={{ padding: "1rem" }}>
         <h4 className="mb-4" style={{ fontSize: "1rem" }}>Conversations</h4>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem" }}>
@@ -172,6 +186,7 @@ export function MessagingPanel({ userId, contacts }: { userId: string; contacts:
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
   );

@@ -4,6 +4,9 @@
 
 export type UserRole = "super_admin" | "admin" | "admin_auto_ecole" | "instructor" | "student";
 export type OrgStatus = "pending" | "active" | "suspended" | "archived" | "rejected";
+// Account approval status — 'active' for everyone except a self-registered
+// moniteur awaiting their school's decision (see 0008_signup.sql).
+export type ProfileStatus = "pending" | "active" | "rejected";
 export type SubscriptionStatus = "trialing" | "active" | "past_due" | "canceled";
 export type PaymentType = "registration" | "course" | "extra_service" | "subscription" | "other";
 export type ContentStatus = "draft" | "published" | "archived";
@@ -52,6 +55,14 @@ export interface Profile {
   must_change_password: boolean;
   social_links: Record<string, string>;
   social_links_public: boolean;
+  status: ProfileStatus;
+  rejection_reason: string | null;
+  birth_date: string | null;
+  gender: string | null;
+  license_number: string | null;
+  years_experience: number | null;
+  teaching_categories: string[];
+  bio: string | null;
   created_at: string;
   updated_at: string;
 }

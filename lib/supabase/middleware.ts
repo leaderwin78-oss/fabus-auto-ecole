@@ -97,12 +97,23 @@ export async function updateSession(request: NextRequest) {
   if (pathname !== "/change-password" && pathname !== "/auth/signout") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, must_change_password")
+      .select("role, must_change_password, status")
       .eq("id", user.id)
       .single();
 
     if (profile?.must_change_password) {
       return NextResponse.redirect(new URL("/change-password", request.url));
+    }
+
+    // A self-registered moniteur waiting on their school's decision can reach
+    // exactly one page. RLS already hides every tenant row from them
+    // (see same_org() in 0008_signup.sql); this just avoids showing empty
+    // dashboards instead of an explanation.
+    if (profile && profile.status !== "active" && pathname !== "/pending") {
+      return NextResponse.redirect(new URL("/pending", request.url));
+    }
+    if (profile?.status === "active" && pathname === "/pending") {
+      return NextResponse.redirect(new URL(ROLE_HOME[profile.role] ?? "/dashboard", request.url));
     }
 
     const areaEntry = Object.entries(ROLES_BY_AREA).find(([base]) => pathname.startsWith(base));

@@ -9,7 +9,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr">
+    // suppressHydrationWarning: the inline script below sets data-theme on
+    // <html> before React hydrates, so the server HTML deliberately differs
+    // from the client. Without it, every themed page logs a mismatch.
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
