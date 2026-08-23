@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
+import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
 
 function slugify(name: string) {
@@ -69,11 +70,14 @@ export async function createOrganization(formData: FormData): Promise<ActionResu
     });
   }
 
+  await logActivity({ organizationId: org.id, actorId: check.userId, action: "organization.created_by_super_admin", entityType: "organization", entityId: org.id });
   revalidatePath("/super-admin/organizations");
   return { ok: true };
 }
 
-export async function updateOrganizationStatus(orgId: string, status: "active" | "suspended" | "archived"): Promise<ActionResult> {
+export type OrgStatus = "pending" | "active" | "suspended" | "archived" | "rejected";
+
+export async function updateOrganizationStatus(orgId: string, status: OrgStatus): Promise<ActionResult> {
   const check = await requireSuperAdmin();
   if (!check.ok) return check;
 
@@ -81,7 +85,111 @@ export async function updateOrganizationStatus(orgId: string, status: "active" |
   const { error } = await supabase.from("organizations").update({ status }).eq("id", orgId);
   if (error) return { ok: false, error: error.message };
 
+  await logActivity({ organizationId: orgId, actorId: check.userId, action: `organization.status_changed:${status}`, entityType: "organization", entityId: orgId });
   revalidatePath("/super-admin/organizations");
+  return { ok: true };
+}
+
+export async function rejectOrganization(orgId: string, reason: string): Promise<ActionResult> {
+  const check = await requireSuperAdmin();
+  if (!check.ok) return check;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update({ status: "rejected", rejection_reason: reason || null }).eq("id", orgId);
+  if (error) return { ok: false, error: error.message };
+
+  await logActivity({ organizationId: orgId, actorId: check.userId, action: "organization.rejected", entityType: "organization", entityId: orgId, metadata: { reason } });
+  revalidatePath("/super-admin/organizations");
+  return { ok: true };
+}
+
+// Public self-registration (section 4): a school applies with a full
+// questionnaire and starts in 'pending' — invisible on the public directory
+// (organizations_select_public only shows status='active') until a
+// super_admin approves it. Creates the founding admin account in the same
+// call since there's no other authenticated user yet to attach the org to.
+export async function applyAsSchool(formData: FormData): Promise<ActionResult> {
+  const name = String(formData.get("name") ?? "").trim();
+  const responsableName = String(formData.get("responsable_name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim() || null;
+  const quartier = String(formData.get("quartier") ?? "").trim() || null;
+  const city = String(formData.get("city") ?? "").trim() || null;
+  const region = String(formData.get("region") ?? "").trim() || null;
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const idNumber = String(formData.get("id_number") ?? "").trim() || null;
+  const servicesRaw = formData.getAll("services").map(String);
+  const pricing = {
+    inscription: Number(formData.get("price_inscription") ?? 0) || null,
+    permis: Number(formData.get("price_permis") ?? 0) || null,
+    perfectionnement: Number(formData.get("price_perfectionnement") ?? 0) || null,
+  };
+  const equipment = {
+    vehicules: String(formData.get("equip_vehicules") ?? "").trim() || null,
+    simulateurs: String(formData.get("equip_simulateurs") ?? "").trim() || null,
+    salles: String(formData.get("equip_salles") ?? "").trim() || null,
+  };
+  const termsAccepted = formData.get("terms_accepted") === "on";
+  const password = String(formData.get("password") ?? "");
+
+  if (!name || !responsableName || !email || !password) {
+    return { ok: false, error: "Nom de l'école, responsable, email et mot de passe requis." };
+  }
+  if (!termsAccepted) {
+    return { ok: false, error: "Vous devez accepter les conditions générales et la politique de confidentialité." };
+  }
+  if (password.length < 8) {
+    return { ok: false, error: "Le mot de passe doit contenir au moins 8 caractères." };
+  }
+
+  const admin = createAdminClient();
+  const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
+
+  const { data: org, error: orgError } = await admin
+    .from("organizations")
+    .insert({
+      name,
+      city,
+      slug,
+      status: "pending",
+      phone: phone || null,
+      email: email || null,
+      responsable_name: responsableName,
+      address,
+      quartier,
+      region,
+      description,
+      id_number: idNumber,
+      services: servicesRaw,
+      pricing,
+      equipment,
+      terms_accepted_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (orgError || !org) return { ok: false, error: orgError?.message ?? "Échec de la création de la demande." };
+
+  const { data: created, error: createUserError } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+  if (createUserError || !created.user) {
+    return { ok: false, error: `Demande enregistrée mais compte non créé : ${createUserError?.message}. Contactez le support.` };
+  }
+
+  const { error: profileError } = await admin.from("profiles").insert({
+    id: created.user.id,
+    organization_id: org.id,
+    role: "admin",
+    full_name: responsableName,
+    phone: phone || null,
+  });
+  if (profileError) return { ok: false, error: `Demande enregistrée mais profil non créé : ${profileError.message}.` };
+
+  await logActivity({ organizationId: org.id, actorId: created.user.id, action: "organization.applied", entityType: "organization", entityId: org.id });
   return { ok: true };
 }
 

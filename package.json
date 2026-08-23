@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
+    "bootstrap-admin": "node --env-file=.env.local scripts/bootstrap-super-admin.mjs",
     "test:smoke": "node scripts/smoke-test.mjs"
   },
   "dependencies": {

@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth";
+import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
 import { getPaymentProvider, type ProviderId } from "@/lib/payments/provider";
 
 export async function createPaymentRequest(formData: FormData): Promise<ActionResult> {
   const { profile } = await requireProfile();
-  if (profile.role !== "admin" && profile.role !== "super_admin") {
+  if (!isOrgStaffRole(profile.role) && profile.role !== "super_admin") {
     return { ok: false, error: "Action réservée aux administrateurs." };
   }
   if (!profile.organization_id) return { ok: false, error: "Organisation introuvable." };
@@ -38,7 +38,7 @@ export async function createPaymentRequest(formData: FormData): Promise<ActionRe
 
 export async function markPaymentPaid(paymentId: string): Promise<ActionResult> {
   const { profile } = await requireProfile();
-  if (profile.role !== "admin" && profile.role !== "super_admin") {
+  if (!isOrgStaffRole(profile.role) && profile.role !== "super_admin") {
     return { ok: false, error: "Action réservée aux administrateurs." };
   }
 

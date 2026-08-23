@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { inviteStaffMember } from "@/lib/actions/people";
 
-export function InviteStaffForm({ role, label }: { role: "instructor" | "student"; label: string }) {
+export function InviteStaffForm({ role, label }: { role: "instructor" | "student" | "admin_auto_ecole"; label: string }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);

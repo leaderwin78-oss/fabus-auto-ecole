@@ -24,7 +24,7 @@ export async function inviteStaffMember(formData: FormData): Promise<ActionResul
   const phone = String(formData.get("phone") ?? "").trim() || null;
 
   if (!email || !fullName) return { ok: false, error: "Nom et email requis." };
-  if (!["instructor", "student"].includes(role)) return { ok: false, error: "Rôle invalide." };
+  if (!["instructor", "student", "admin_auto_ecole"].includes(role)) return { ok: false, error: "Rôle invalide." };
 
   const admin = createAdminClient();
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { Organization } from "@/types/database";
 
 async function getActiveSchools(): Promise<Organization[]> {
@@ -29,7 +30,7 @@ export default async function LandingPage() {
             href="/"
             style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 800, fontSize: "1.5rem", color: "var(--text-primary)" }}
           >
-            <i className="fa-solid fa-car-side" style={{ color: "var(--fabus-green)" }}></i> FABUS
+            <i className="fa-solid fa-car-side" style={{ color: "var(--fabus-green)" }}></i> L&apos;Auto École
           </Link>
 
           <div className="nav-links">
@@ -39,7 +40,8 @@ export default async function LandingPage() {
             <a href="#tarifs">Tarifs</a>
           </div>
 
-          <div style={{ display: "flex", gap: "1rem" }}>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link href="/login" className="btn btn-secondary">Se connecter</Link>
             <Link href="/signup" className="btn btn-primary">S&apos;inscrire</Link>
           </div>
@@ -125,7 +127,7 @@ export default async function LandingPage() {
       <section id="methode" className="section container">
         <div className="text-center mb-8 animate-fade-up">
           <span className="badge mb-2">Notre Méthode</span>
-          <h2>Pourquoi choisir FABUS ?</h2>
+          <h2>Pourquoi choisir L&apos;Auto École ?</h2>
           <p className="text-muted-color" style={{ maxWidth: 600, margin: "0 auto" }}>
             L&apos;expérience du permis de conduire entièrement repensée pour vous faciliter la vie.
           </p>
@@ -169,10 +171,10 @@ export default async function LandingPage() {
             <div className="card empty-state" style={{ maxWidth: 500, margin: "0 auto" }}>
               <p className="mb-0">
                 Aucune auto-école n&apos;est encore inscrite sur la plateforme.{" "}
-                <Link href="/signup" style={{ color: "var(--fabus-green)", fontWeight: 600 }}>
-                  Créez la première
+                <Link href="/signup/school" style={{ color: "var(--fabus-green)", fontWeight: 600 }}>
+                  Inscrivez la vôtre
                 </Link>{" "}
-                ou contactez-nous pour rejoindre FABUS.
+                pour rejoindre L&apos;Auto École.
               </p>
             </div>
           ) : (
@@ -259,7 +261,7 @@ export default async function LandingPage() {
         <div className="container flex justify-between" style={{ flexWrap: "wrap", gap: "2rem", marginBottom: "2rem" }}>
           <div>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 800, fontSize: "1.5rem", marginBottom: "1rem" }}>
-              <i className="fa-solid fa-car-side" style={{ color: "var(--fabus-green)" }}></i> FABUS
+              <i className="fa-solid fa-car-side" style={{ color: "var(--fabus-green)" }}></i> L&apos;Auto École
             </Link>
             <p className="text-muted-color" style={{ maxWidth: 300 }}>
               La plateforme numérique qui accompagne l&apos;élève de son inscription jusqu&apos;à son permis de conduire.
@@ -278,7 +280,8 @@ export default async function LandingPage() {
             <div>
               <h4 className="mb-4">Pour les Auto-Écoles</h4>
               <ul style={{ display: "flex", flexDirection: "column", gap: "0.5rem", color: "var(--text-secondary)" }}>
-                <li><Link href="/signup">Devenir Partenaire</Link></li>
+                <li><Link href="/signup/school">Devenir Partenaire</Link></li>
+                <li><Link href="/annonces">Annonces</Link></li>
               </ul>
             </div>
             <div>
@@ -290,7 +293,7 @@ export default async function LandingPage() {
           </div>
         </div>
         <div className="container text-center text-muted-color text-sm" style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2rem" }}>
-          &copy; 2026 FABUS. Tous droits réservés.
+          &copy; 2026 L&apos;Auto École. Tous droits réservés.
         </div>
       </footer>
     </>

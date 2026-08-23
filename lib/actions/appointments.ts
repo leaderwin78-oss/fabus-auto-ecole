@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth";
+import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
 
 // Maps a Postgres exclusion-constraint violation (double-booking) to a
@@ -19,7 +19,7 @@ function friendlyAppointmentError(message: string): string {
 
 export async function createAppointment(formData: FormData): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
-  if (!["admin", "instructor", "super_admin"].includes(profile.role)) {
+  if (!isOrgStaffRole(profile.role) && profile.role !== "instructor" && profile.role !== "super_admin") {
     return { ok: false, error: "Action réservée au personnel de l'auto-école." };
   }
   if (!profile.organization_id) return { ok: false, error: "Organisation introuvable." };
@@ -36,7 +36,7 @@ export async function createAppointment(formData: FormData): Promise<ActionResul
   if (!title || !startTime || !endTime) return { ok: false, error: "Titre, date de début et de fin requis." };
   if (new Date(endTime) <= new Date(startTime)) return { ok: false, error: "L'heure de fin doit être après l'heure de début." };
 
-  const meetingUrl = type === "video_course" ? `https://meet.jit.si/fabus-${crypto.randomUUID()}` : null;
+  const meetingUrl = type === "video_course" ? `https://meet.jit.si/auto-ecole-${crypto.randomUUID()}` : null;
 
   const supabase = await createClient();
   const { error } = await supabase.from("appointments").insert({
@@ -69,7 +69,7 @@ export async function updateAppointmentStatus(
   status: "confirmed" | "canceled" | "completed" | "no_show"
 ): Promise<ActionResult> {
   const { profile } = await requireProfile();
-  if (!["admin", "instructor", "super_admin"].includes(profile.role)) {
+  if (!isOrgStaffRole(profile.role) && profile.role !== "instructor" && profile.role !== "super_admin") {
     return { ok: false, error: "Action réservée au personnel de l'auto-école." };
   }
 
@@ -85,7 +85,7 @@ export async function updateAppointmentStatus(
 
 export async function addSessionNote(formData: FormData): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
-  if (profile.role !== "instructor" && profile.role !== "admin") {
+  if (profile.role !== "instructor" && !isOrgStaffRole(profile.role)) {
     return { ok: false, error: "Action réservée aux moniteurs." };
   }
 

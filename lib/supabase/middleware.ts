@@ -1,17 +1,30 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Maps a role to its dashboard area. admin_auto_ecole (delegated staff)
+// shares the same /admin area as admin (the school owner) — RLS is what
+// actually restricts what admin_auto_ecole can write, not routing.
 const ROLE_HOME: Record<string, string> = {
   super_admin: "/super-admin",
   admin: "/admin",
+  admin_auto_ecole: "/admin",
   instructor: "/instructor",
   student: "/student",
 };
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth/callback"];
+const ROLES_BY_AREA: Record<string, string[]> = {
+  "/super-admin": ["super_admin"],
+  "/admin": ["admin", "admin_auto_ecole"],
+  "/instructor": ["instructor"],
+  "/student": ["student"],
+};
+
+const PUBLIC_PATHS = ["/", "/login", "/auth/callback", "/annonces", "/confidentialite", "/conditions"];
+const PUBLIC_PREFIXES = ["/signup"];
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
+  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return true;
   // Marketing anchors / static assets under /public, Next internals.
   return (
     pathname.startsWith("/_next") ||
@@ -58,8 +71,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Logged-in users don't need the marketing/login pages.
-  if (pathname === "/login" || pathname === "/signup") {
+  // Logged-in users don't need the marketing/login/signup pages.
+  if (pathname === "/login" || pathname.startsWith("/signup")) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -79,17 +92,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(new URL(home ?? "/login", request.url));
   }
 
-  const areaEntry = Object.entries(ROLE_HOME).find(([, base]) => pathname.startsWith(base));
-  if (areaEntry) {
-    const [role] = areaEntry;
+  // Forced password change (bootstrapped super_admin, section 2) takes
+  // priority over every other authenticated route except signing out.
+  if (pathname !== "/change-password" && pathname !== "/auth/signout") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, must_change_password")
       .eq("id", user.id)
       .single();
-    if (!profile || profile.role !== role) {
-      const home = profile ? ROLE_HOME[profile.role] ?? "/login" : "/login";
-      return NextResponse.redirect(new URL(home, request.url));
+
+    if (profile?.must_change_password) {
+      return NextResponse.redirect(new URL("/change-password", request.url));
+    }
+
+    const areaEntry = Object.entries(ROLES_BY_AREA).find(([base]) => pathname.startsWith(base));
+    if (areaEntry) {
+      const [, allowedRoles] = areaEntry;
+      if (!profile || !allowedRoles.includes(profile.role)) {
+        const home = profile ? ROLE_HOME[profile.role] ?? "/login" : "/login";
+        return NextResponse.redirect(new URL(home, request.url));
+      }
     }
   }
 

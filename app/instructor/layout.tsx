@@ -7,6 +7,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/instructor/students", label: "Mes Élèves", icon: "fa-solid fa-user-graduate" },
   { href: "/instructor/calendar", label: "Calendrier", icon: "fa-solid fa-calendar-days" },
   { href: "/instructor/messages", label: "Messages", icon: "fa-solid fa-message" },
+  { href: "/communaute", label: "Communauté", icon: "fa-solid fa-users" },
+  { href: "/account", label: "Mon compte", icon: "fa-solid fa-user-gear" },
 ];
 
 export default async function InstructorLayout({ children }: { children: React.ReactNode }) {

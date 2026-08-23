@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth";
+import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 
 export interface ActionResult {
   ok: boolean;
@@ -11,7 +11,7 @@ export interface ActionResult {
 
 async function requireStaff() {
   const { userId, profile } = await requireProfile();
-  if (profile.role !== "admin" && profile.role !== "super_admin") {
+  if (!isOrgStaffRole(profile.role) && profile.role !== "super_admin") {
     return { ok: false as const, error: "Action réservée aux administrateurs." };
   }
   return { ok: true as const, userId, profile };

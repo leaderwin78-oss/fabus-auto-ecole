@@ -101,7 +101,7 @@ function SignupForm() {
   return (
     <div className="card" style={{ maxWidth: 460, width: "100%" }}>
       <h2 className="mb-2">Créer mon compte élève</h2>
-      <p className="text-muted-color mb-8">Rejoignez votre auto-école sur FABUS.</p>
+      <p className="text-muted-color mb-8">Rejoignez votre auto-école sur L&apos;Auto École.</p>
 
       {error && <div className="form-error-banner">{error}</div>}
 

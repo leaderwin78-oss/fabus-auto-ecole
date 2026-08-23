@@ -10,6 +10,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/student/quizzes", label: "Quiz & Examens", icon: "fa-solid fa-circle-question" },
   { href: "/student/payments", label: "Paiements", icon: "fa-solid fa-credit-card" },
   { href: "/student/messages", label: "Messages", icon: "fa-solid fa-message" },
+  { href: "/communaute", label: "Communauté", icon: "fa-solid fa-users" },
+  { href: "/account", label: "Mon compte", icon: "fa-solid fa-user-gear" },
 ];
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {

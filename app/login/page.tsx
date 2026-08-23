@@ -39,7 +39,7 @@ function LoginForm() {
   return (
     <div className="card" style={{ maxWidth: 420, width: "100%" }}>
       <h2 className="mb-2">Se connecter</h2>
-      <p className="text-muted-color mb-8">Accédez à votre espace FABUS.</p>
+      <p className="text-muted-color mb-8">Accédez à votre espace L&apos;Auto École.</p>
 
       {error && <div className="form-error-banner">{error}</div>}
 

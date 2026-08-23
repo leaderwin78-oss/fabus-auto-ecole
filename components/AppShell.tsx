@@ -1,10 +1,12 @@
 import { Sidebar, type NavItem } from "@/components/Sidebar";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { Profile } from "@/types/database";
 
 const ROLE_LABEL: Record<string, string> = {
   super_admin: "Super Admin",
   admin: "Administrateur",
+  admin_auto_ecole: "Administrateur délégué",
   instructor: "Moniteur",
   student: "Élève",
 };
@@ -36,9 +38,15 @@ export function AppShell({
             {subtitle && <p className="text-muted-color mb-0">{subtitle}</p>}
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <NotificationsBell userId={userId} />
             <div className="flex items-center gap-2">
-              <div className="avatar">{initial}</div>
+              {profile.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatar_url} alt={profile.full_name} className="avatar" style={{ objectFit: "cover" }} />
+              ) : (
+                <div className="avatar">{initial}</div>
+              )}
               <div style={{ lineHeight: 1.3 }}>
                 <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{profile.full_name}</div>
                 <div className="text-sm text-muted-color">{ROLE_LABEL[profile.role]}</div>

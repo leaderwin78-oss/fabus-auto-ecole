@@ -19,7 +19,7 @@ export function Sidebar({ items }: { items: NavItem[] }) {
           href="/"
           style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 800, fontSize: "1.5rem", color: "var(--text-primary)" }}
         >
-          <i className="fa-solid fa-car-side" style={{ color: "var(--fabus-green)" }}></i> FABUS
+          <i className="fa-solid fa-car-side" style={{ color: "var(--fabus-green)" }}></i> L&apos;Auto École
         </Link>
       </div>
       <nav className="sidebar-nav">

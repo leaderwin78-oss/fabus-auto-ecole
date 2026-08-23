@@ -26,3 +26,15 @@ export const requireProfile = cache(async (): Promise<{ userId: string; profile:
 
   return { userId: user.id, profile: profile as Profile };
 });
+
+// admin = auto-école owner, admin_auto_ecole = delegated staff. Both can run
+// day-to-day operations (courses, calendar, payments, documents); only the
+// owner manages org settings, billing, and staff accounts — see
+// is_org_admin() vs is_org_staff() in supabase/migrations/0006_v2_platform.sql.
+export function isOrgStaffRole(role: string): boolean {
+  return role === "admin" || role === "admin_auto_ecole";
+}
+
+export function isOrgOwnerRole(role: string): boolean {
+  return role === "admin";
+}

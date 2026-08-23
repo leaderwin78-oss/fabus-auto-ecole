@@ -11,7 +11,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/calendar", label: "Calendrier", icon: "fa-solid fa-calendar-days" },
   { href: "/admin/payments", label: "Paiements", icon: "fa-solid fa-credit-card" },
   { href: "/admin/messages", label: "Messages", icon: "fa-solid fa-message" },
+  { href: "/communaute", label: "Communauté", icon: "fa-solid fa-users" },
   { href: "/admin/settings", label: "Paramètres", icon: "fa-solid fa-gear" },
+  { href: "/account", label: "Mon compte", icon: "fa-solid fa-user-gear" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

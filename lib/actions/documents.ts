@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth";
+import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
 
 export async function uploadDocument(formData: FormData): Promise<ActionResult> {
@@ -47,7 +47,7 @@ export async function updateDocumentStatus(
   status: "validated" | "rejected"
 ): Promise<ActionResult> {
   const { profile } = await requireProfile();
-  if (profile.role !== "admin" && profile.role !== "super_admin") {
+  if (!isOrgStaffRole(profile.role) && profile.role !== "super_admin") {
     return { ok: false, error: "Action réservée aux administrateurs." };
   }
 
