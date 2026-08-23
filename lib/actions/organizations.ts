@@ -94,7 +94,9 @@ export async function updateOrganizationStatus(orgId: string, status: OrgStatus)
   if (status === "active") {
     const { data: existingSub } = await supabase.from("subscriptions").select("id").eq("organization_id", orgId).limit(1).maybeSingle();
     if (!existingSub) {
-      const { data: settings } = await supabase.from("platform_settings").select("trial_days").eq("id", true).single();
+      // platform_settings est réservé au super admin depuis 0011 ; on lit avec
+      // la clé service_role pour ne pas dépendre du rôle de l'appelant.
+      const { data: settings } = await createAdminClient().from("platform_settings").select("trial_days").eq("id", true).single();
       const { data: freePlan } = await supabase.from("plans").select("id").eq("code", "free").maybeSingle();
       const trialDays = settings?.trial_days ?? 90;
       const trialStart = new Date();
