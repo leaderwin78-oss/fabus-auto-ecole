@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { applyAsSchool } from "@/lib/actions/organizations";
 import { AuthShell } from "@/components/AuthShell";
 import { Choice, ReviewRow, WizardNav, WizardProgress, WizardStep } from "@/components/Wizard";
+import { SignupSchoolIllustration } from "@/components/illustrations/Illustrations";
 
 // Same step-by-step shape as the élève and moniteur wizards. A school's
 // questionnaire is the longest of the three — it creates the tenant itself —
@@ -344,9 +345,18 @@ function SchoolSignupForm() {
 export default function SchoolSignupPage() {
   return (
     <AuthShell action={<Link href="/signup" className="btn btn-secondary btn-sm">Changer de profil</Link>}>
-      <Suspense fallback={null}>
-        <SchoolSignupForm />
-      </Suspense>
+      <div className="auth-split">
+        <Suspense fallback={null}>
+          <SchoolSignupForm />
+        </Suspense>
+        <aside className="auth-aside">
+          <SignupSchoolIllustration />
+          <p>
+            Gérez vos élèves, vos moniteurs, vos cours et vos paiements depuis un seul espace. Votre demande est
+            validée par notre équipe sous quelques jours.
+          </p>
+        </aside>
+      </div>
     </AuthShell>
   );
 }

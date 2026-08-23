@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { DashboardBanner } from "@/components/DashboardBanner";
 
 export default async function InstructorDashboardPage() {
   const { userId } = await requireProfile();
@@ -32,6 +33,11 @@ export default async function InstructorDashboardPage() {
 
   return (
     <>
+      <DashboardBanner
+        variant="instructor"
+        title="Votre journée de moniteur"
+        subtitle="Vos séances du jour, vos élèves et votre planning à venir."
+      />
       <div className="grid grid-cols-3 mb-8">
         <div className="card stat-tile">
           <div className="stat-value">{todaySessions?.length ?? 0}</div>

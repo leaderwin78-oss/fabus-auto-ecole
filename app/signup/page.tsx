@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { AuthShell } from "@/components/AuthShell";
+import {
+  SignupStudentIllustration,
+  SignupSchoolIllustration,
+  SignupInstructorIllustration,
+} from "@/components/illustrations/Illustrations";
 
 // /signup is now a door chooser rather than a form. The three profiles need
 // genuinely different questionnaires (a moniteur has a licence number, a
@@ -22,7 +27,7 @@ export default async function SignupRolePage({
   const roles = [
     {
       href: `/signup/eleve${suffix}`,
-      icon: "fa-solid fa-graduation-cap",
+      art: <SignupStudentIllustration />,
       title: "Élève",
       description:
         "Je veux passer mon permis : réviser le code en ligne, réserver mes heures de conduite et suivre mon dossier.",
@@ -30,7 +35,7 @@ export default async function SignupRolePage({
     },
     {
       href: `/signup/auto-ecole${suffix}`,
-      icon: "fa-solid fa-building",
+      art: <SignupSchoolIllustration />,
       title: "Auto-école",
       description:
         "Je dirige une auto-école et je veux gérer mes élèves, mes moniteurs, mes cours et mes paiements sur la plateforme.",
@@ -38,7 +43,7 @@ export default async function SignupRolePage({
     },
     {
       href: `/signup/moniteur${suffix}`,
-      icon: "fa-solid fa-user-tie",
+      art: <SignupInstructorIllustration />,
       title: "Moniteur",
       description:
         "Je suis moniteur d'auto-école et je veux rejoindre l'équipe d'une auto-école déjà inscrite sur la plateforme.",
@@ -67,9 +72,7 @@ export default async function SignupRolePage({
         <div className="role-grid">
           {roles.map((role) => (
             <Link key={role.href} href={role.href} className="role-card">
-              <span className="role-icon">
-                <i className={role.icon}></i>
-              </span>
+              <div className="role-art">{role.art}</div>
               <h3>{role.title}</h3>
               <p>{role.description}</p>
               <span className="role-cta">

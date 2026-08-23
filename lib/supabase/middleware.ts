@@ -97,7 +97,7 @@ export async function updateSession(request: NextRequest) {
   if (pathname !== "/change-password" && pathname !== "/auth/signout") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, must_change_password, status")
+      .select("role, must_change_password, status, organizations(status)")
       .eq("id", user.id)
       .single();
 
@@ -105,14 +105,24 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL("/change-password", request.url));
     }
 
-    // A self-registered moniteur waiting on their school's decision can reach
-    // exactly one page. RLS already hides every tenant row from them
-    // (see same_org() in 0008_signup.sql); this just avoids showing empty
-    // dashboards instead of an explanation.
-    if (profile && profile.status !== "active" && pathname !== "/pending") {
+    // Two independent reasons to be held at the door:
+    //  - the account itself is not approved (a self-registered moniteur), or
+    //  - the whole auto-école is still awaiting the super admin's decision,
+    //    in which case none of its members can work yet.
+    // super_admin has no organization, so the org check must tolerate null.
+    const org = Array.isArray(profile?.organizations) ? profile.organizations[0] : profile?.organizations;
+    const orgStatus = (org as { status?: string } | null | undefined)?.status;
+    const held = profile
+      ? profile.status !== "active" || (orgStatus !== undefined && orgStatus !== "active")
+      : false;
+
+    // RLS already hides every tenant row from a held account (see same_org()
+    // in 0008_signup.sql); this just shows an explanation rather than a
+    // dashboard full of empty tables.
+    if (held && pathname !== "/pending") {
       return NextResponse.redirect(new URL("/pending", request.url));
     }
-    if (profile?.status === "active" && pathname === "/pending") {
+    if (profile && !held && pathname === "/pending") {
       return NextResponse.redirect(new URL(ROLE_HOME[profile.role] ?? "/dashboard", request.url));
     }
 

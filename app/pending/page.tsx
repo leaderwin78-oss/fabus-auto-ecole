@@ -1,24 +1,30 @@
 import Link from "next/link";
-import { requireProfile } from "@/lib/auth";
+import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AuthShell } from "@/components/AuthShell";
+import { WaitingIllustration, RejectedIllustration } from "@/components/illustrations/Illustrations";
 
-// Where a self-registered moniteur lands until their school decides. Middleware
-// sends every non-active account here; RLS is what actually keeps the school's
-// data out of reach.
+// The waiting room. Middleware sends anyone here whose account OR whose
+// auto-école has not been approved yet, and sends them away again the moment
+// both are active — so this page turns into their dashboard by itself.
 export default async function PendingPage() {
   const { profile } = await requireProfile();
   const supabase = await createClient();
 
-  // organizations_select still lets a pending member read their own school row
-  // (name only, no sensitive columns) so this page can name who is reviewing.
   const { data: org } = await supabase
     .from("organizations")
-    .select("name")
+    .select("name, status, rejection_reason")
     .eq("id", profile.organization_id ?? "")
     .maybeSingle();
 
-  const rejected = profile.status === "rejected";
+  const isStaff = isOrgStaffRole(profile.role);
+  const orgPending = isStaff && org?.status === "pending";
+  const orgRejected = isStaff && org?.status === "rejected";
+  const orgSuspended = isStaff && org?.status === "suspended";
+  const accountRejected = profile.status === "rejected";
+
+  const rejected = accountRejected || orgRejected;
+  const firstName = profile.full_name.split(" ")[0];
 
   return (
     <AuthShell
@@ -30,12 +36,27 @@ export default async function PendingPage() {
         </form>
       }
     >
-      <div className="auth-card text-center">
-        <div className="icon-box" style={{ margin: "0 auto 1.5rem" }}>
-          <i className={`fa-solid ${rejected ? "fa-circle-xmark" : "fa-hourglass-half"}`}></i>
+      <div className="auth-card auth-card-wide text-center">
+        <div className="pending-art">
+          {rejected ? <RejectedIllustration /> : <WaitingIllustration />}
         </div>
 
-        {rejected ? (
+        {orgRejected ? (
+          <>
+            <h1 className="auth-title">Demande non retenue</h1>
+            <p className="auth-subtitle">
+              La demande d&apos;inscription de <strong>{org?.name}</strong> n&apos;a pas été validée par notre équipe.
+            </p>
+            {org?.rejection_reason && (
+              <div className="form-error-banner" style={{ textAlign: "left" }}>
+                <strong>Motif :</strong> {org.rejection_reason}
+              </div>
+            )}
+            <p className="text-sm text-muted-color mb-0">
+              Vous pouvez corriger les informations concernées et nous contacter pour un nouvel examen de votre dossier.
+            </p>
+          </>
+        ) : accountRejected ? (
           <>
             <h1 className="auth-title">Candidature non retenue</h1>
             <p className="auth-subtitle">
@@ -46,26 +67,94 @@ export default async function PendingPage() {
                 <strong>Motif :</strong> {profile.rejection_reason}
               </div>
             )}
-            <p className="text-sm text-muted-color">
-              Vous pouvez contacter directement l&apos;auto-école, ou créer une nouvelle candidature auprès d&apos;un
-              autre établissement.
+            <p className="text-sm text-muted-color mb-0">
+              Vous pouvez contacter directement l&apos;auto-école, ou postuler auprès d&apos;un autre établissement.
+            </p>
+          </>
+        ) : orgSuspended ? (
+          <>
+            <h1 className="auth-title">Accès temporairement suspendu</h1>
+            <p className="auth-subtitle">
+              L&apos;accès à l&apos;espace de <strong>{org?.name}</strong> est suspendu. Contactez notre équipe pour
+              rétablir votre compte.
+            </p>
+          </>
+        ) : orgPending ? (
+          <>
+            <span className="badge mb-4">Bienvenue sur L&apos;Auto École</span>
+            <h1 className="auth-title">Bonjour {firstName}, votre demande est bien arrivée 👋</h1>
+            <p className="auth-subtitle">
+              Merci d&apos;avoir inscrit <strong>{org?.name}</strong>. Notre équipe examine votre dossier — c&apos;est
+              une simple vérification, et la très grande majorité des demandes sont acceptées.
+            </p>
+
+            <div className="steps-timeline">
+              <div className="step done">
+                <span className="step-dot"><i className="fa-solid fa-check"></i></span>
+                <div>
+                  <p className="step-title">Demande envoyée</p>
+                  <p className="step-help">Nous avons reçu toutes vos informations.</p>
+                </div>
+              </div>
+              <div className="step current">
+                <span className="step-dot"><i className="fa-solid fa-hourglass-half"></i></span>
+                <div>
+                  <p className="step-title">Vérification par notre équipe</p>
+                  <p className="step-help">Nous contrôlons les informations de votre établissement.</p>
+                </div>
+              </div>
+              <div className="step">
+                <span className="step-dot"><i className="fa-solid fa-key"></i></span>
+                <div>
+                  <p className="step-title">Ouverture de votre espace</p>
+                  <p className="step-help">
+                    Vous recevrez une notification avec un lien de connexion, et vous pourrez inscrire vos élèves.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-color mb-0">
+              Rien à faire de votre côté. Revenez sur cette page plus tard : elle deviendra automatiquement votre
+              tableau de bord dès la validation.
             </p>
           </>
         ) : (
           <>
-            <h1 className="auth-title">Candidature en cours d&apos;examen</h1>
+            <span className="badge mb-4">Candidature moniteur</span>
+            <h1 className="auth-title">Bonjour {firstName}, votre candidature est en cours d&apos;examen</h1>
             <p className="auth-subtitle">
-              Bonjour {profile.full_name.split(" ")[0]}, votre candidature a bien été transmise à{" "}
-              <strong>{org?.name ?? "votre auto-école"}</strong>. Vous recevrez l&apos;accès à votre espace moniteur dès
-              que la direction aura validé votre profil.
+              Elle a bien été transmise à <strong>{org?.name ?? "votre auto-école"}</strong>. Vous accéderez à votre
+              espace moniteur dès que la direction aura validé votre profil.
             </p>
-            <div className="card-flat" style={{ background: "var(--bg-secondary)", textAlign: "left", borderRadius: "var(--radius-md)" }}>
-              <p className="text-sm mb-2" style={{ fontWeight: 500 }}>En attendant</p>
-              <p className="text-sm text-muted-color mb-0">
-                Rien à faire de votre côté. Reconnectez-vous plus tard pour vérifier l&apos;état de votre candidature —
-                cette page se transformera automatiquement en tableau de bord une fois votre profil validé.
-              </p>
+
+            <div className="steps-timeline">
+              <div className="step done">
+                <span className="step-dot"><i className="fa-solid fa-check"></i></span>
+                <div>
+                  <p className="step-title">Candidature envoyée</p>
+                  <p className="step-help">Votre dossier est arrivé à l&apos;auto-école.</p>
+                </div>
+              </div>
+              <div className="step current">
+                <span className="step-dot"><i className="fa-solid fa-hourglass-half"></i></span>
+                <div>
+                  <p className="step-title">Examen par la direction</p>
+                  <p className="step-help">Elle vérifie votre agrément et votre expérience.</p>
+                </div>
+              </div>
+              <div className="step">
+                <span className="step-dot"><i className="fa-solid fa-key"></i></span>
+                <div>
+                  <p className="step-title">Accès à votre espace</p>
+                  <p className="step-help">Vos élèves et votre planning s&apos;afficheront ici.</p>
+                </div>
+              </div>
             </div>
+
+            <p className="text-sm text-muted-color mb-0">
+              Rien à faire de votre côté. Cette page deviendra votre tableau de bord dès la validation.
+            </p>
           </>
         )}
 

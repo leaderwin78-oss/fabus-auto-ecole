@@ -2,6 +2,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SchoolPicker } from "./SchoolPicker";
+import {
+  HeroIllustration,
+  SignupStudentIllustration,
+  SignupSchoolIllustration,
+  SignupInstructorIllustration,
+} from "@/components/illustrations/Illustrations";
 import type { Organization } from "@/types/database";
 
 async function getActiveSchools(): Promise<Organization[]> {
@@ -80,6 +86,10 @@ export default async function LandingPage() {
         <div className="hero-actions animate-fade-up delay-300">
           <Link href="/signup" className="btn btn-secondary">Créer un compte</Link>
           <a href="#ecoles" className="btn btn-secondary">Voir les auto-écoles</a>
+        </div>
+
+        <div className="animate-fade-up delay-400" style={{ width: "100%", maxWidth: 440, marginTop: "3rem" }}>
+          <HeroIllustration />
         </div>
       </section>
 
@@ -191,19 +201,19 @@ export default async function LandingPage() {
           </div>
           <div className="role-grid" style={{ maxWidth: 980, margin: "0 auto" }}>
             <Link href="/signup/eleve" className="role-card">
-              <span className="role-icon"><i className="fa-solid fa-graduation-cap"></i></span>
+              <div className="role-art"><SignupStudentIllustration /></div>
               <h3>Je suis élève</h3>
               <p>Je veux passer mon permis et suivre ma formation en ligne.</p>
               <span className="role-cta">Créer mon compte <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i></span>
             </Link>
             <Link href="/signup/auto-ecole" className="role-card">
-              <span className="role-icon"><i className="fa-solid fa-building"></i></span>
+              <div className="role-art"><SignupSchoolIllustration /></div>
               <h3>Je dirige une auto-école</h3>
               <p>Je veux gérer mes élèves, mes moniteurs et mes paiements.</p>
               <span className="role-cta">Inscrire mon auto-école <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i></span>
             </Link>
             <Link href="/signup/moniteur" className="role-card">
-              <span className="role-icon"><i className="fa-solid fa-user-tie"></i></span>
+              <div className="role-art"><SignupInstructorIllustration /></div>
               <h3>Je suis moniteur</h3>
               <p>Je veux rejoindre l&apos;équipe d&apos;une auto-école partenaire.</p>
               <span className="role-cta">Envoyer ma candidature <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i></span>

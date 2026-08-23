@@ -17,6 +17,7 @@ import {
   formatBirthDate,
   toIsoDate,
 } from "@/components/Wizard";
+import { SignupInstructorIllustration } from "@/components/illustrations/Illustrations";
 import type { Organization } from "@/types/database";
 
 // Same one-question-per-screen shape as the student wizard, plus the
@@ -319,9 +320,18 @@ function InstructorSignupForm() {
 export default function InstructorSignupPage() {
   return (
     <AuthShell action={<Link href="/signup" className="btn btn-secondary btn-sm">Changer de profil</Link>}>
-      <Suspense fallback={null}>
-        <InstructorSignupForm />
-      </Suspense>
+      <div className="auth-split">
+        <Suspense fallback={null}>
+          <InstructorSignupForm />
+        </Suspense>
+        <aside className="auth-aside">
+          <SignupInstructorIllustration />
+          <p>
+            Rejoignez une auto-école partenaire, gérez votre planning de séances et suivez la progression de vos
+            élèves.
+          </p>
+        </aside>
+      </div>
     </AuthShell>
   );
 }

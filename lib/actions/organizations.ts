@@ -113,6 +113,36 @@ export async function updateOrganizationStatus(orgId: string, status: OrgStatus)
     }
   }
 
+  // Notify the school's own staff of the decision. The link points at /login
+  // so the message stays useful whether or not they still have a session — a
+  // signed-in member is bounced straight to their dashboard from there.
+  const notifyAdmin = createAdminClient();
+  const { data: staff } = await notifyAdmin
+    .from("profiles")
+    .select("id")
+    .eq("organization_id", orgId)
+    .in("role", ["admin", "admin_auto_ecole"]);
+
+  if (staff && staff.length > 0) {
+    const message =
+      status === "active"
+        ? { title: "Votre auto-école est validée", body: "Félicitations, votre auto-école a été approuvée. Vous pouvez maintenant accéder à votre espace et commencer à inscrire vos élèves.", link: "/login" }
+        : status === "suspended"
+          ? { title: "Votre auto-école est suspendue", body: "L'accès à votre espace est temporairement suspendu. Contactez notre équipe pour en savoir plus.", link: "/pending" }
+          : { title: "Statut de votre auto-école mis à jour", body: `Le statut de votre auto-école est désormais : ${status}.`, link: "/pending" };
+
+    await notifyAdmin.from("notifications").insert(
+      staff.map((s) => ({
+        organization_id: orgId,
+        user_id: s.id,
+        type: `organization_${status}`,
+        title: message.title,
+        body: message.body,
+        link: message.link,
+      }))
+    );
+  }
+
   await logActivity({ organizationId: orgId, actorId: check.userId, action: `organization.status_changed:${status}`, entityType: "organization", entityId: orgId });
   revalidatePath("/super-admin/organizations");
   return { ok: true };
@@ -125,6 +155,26 @@ export async function rejectOrganization(orgId: string, reason: string): Promise
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ status: "rejected", rejection_reason: reason || null }).eq("id", orgId);
   if (error) return { ok: false, error: error.message };
+
+  const notifyAdmin = createAdminClient();
+  const { data: staff } = await notifyAdmin
+    .from("profiles")
+    .select("id")
+    .eq("organization_id", orgId)
+    .in("role", ["admin", "admin_auto_ecole"]);
+
+  if (staff && staff.length > 0) {
+    await notifyAdmin.from("notifications").insert(
+      staff.map((s) => ({
+        organization_id: orgId,
+        user_id: s.id,
+        type: "organization_rejected",
+        title: "Demande non retenue",
+        body: reason || "Votre demande d'inscription n'a pas été retenue.",
+        link: "/pending",
+      }))
+    );
+  }
 
   await logActivity({ organizationId: orgId, actorId: check.userId, action: "organization.rejected", entityType: "organization", entityId: orgId, metadata: { reason } });
   revalidatePath("/super-admin/organizations");
@@ -234,6 +284,33 @@ export async function applyAsSchool(formData: FormData): Promise<ActionResult> {
 
   const refCode = String(formData.get("ref_code") ?? "").trim();
   if (refCode) await recordReferralJoin(refCode, created.user.id);
+
+  // Tell every super admin there is a school waiting in the approval queue.
+  // organization_id stays null: a super_admin belongs to no tenant, and the
+  // notifications RLS policy filters on user_id alone.
+  const { data: superAdmins } = await admin.from("profiles").select("id").eq("role", "super_admin");
+  if (superAdmins && superAdmins.length > 0) {
+    await admin.from("notifications").insert(
+      superAdmins.map((sa) => ({
+        organization_id: null,
+        user_id: sa.id,
+        type: "organization_application",
+        title: "Nouvelle demande d'auto-école",
+        body: `${name}${city ? ` (${city})` : ""} demande à rejoindre la plateforme. Responsable : ${responsableName}.`,
+        link: `/super-admin/organizations/${org.id}`,
+      }))
+    );
+  }
+
+  // And confirm to the applicant that the request was received.
+  await admin.from("notifications").insert({
+    organization_id: org.id,
+    user_id: created.user.id,
+    type: "organization_application_received",
+    title: "Demande reçue",
+    body: `Votre demande d'inscription pour ${name} a bien été transmise à notre équipe. Vous serez prévenu dès qu'elle sera validée.`,
+    link: "/pending",
+  });
 
   await logActivity({ organizationId: org.id, actorId: created.user.id, action: "organization.applied", entityType: "organization", entityId: org.id });
   return { ok: true };

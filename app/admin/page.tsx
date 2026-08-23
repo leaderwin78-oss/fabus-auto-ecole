@@ -1,5 +1,6 @@
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { DashboardBanner } from "@/components/DashboardBanner";
 
 export default async function AdminDashboardPage() {
   const { profile } = await requireProfile();
@@ -23,6 +24,12 @@ export default async function AdminDashboardPage() {
   const revenue = (recentPayments ?? []).reduce((sum, p) => sum + p.amount_fcfa, 0);
 
   return (
+    <>
+    <DashboardBanner
+      variant="admin"
+      title="Pilotage de votre auto-école"
+      subtitle="Vos élèves, vos moniteurs, vos formations et vos recettes en un coup d'œil."
+    />
     <div className="grid grid-cols-4 mb-8">
       <div className="card stat-tile">
         <div className="stat-value">{studentCount ?? 0}</div>
@@ -45,5 +52,6 @@ export default async function AdminDashboardPage() {
         <div className="stat-label">Chiffre d&apos;affaires encaissé</div>
       </div>
     </div>
+    </>
   );
 }

@@ -17,6 +17,7 @@ import {
   formatBirthDate,
   toIsoDate,
 } from "@/components/Wizard";
+import { SignupStudentIllustration } from "@/components/illustrations/Illustrations";
 import type { Organization } from "@/types/database";
 
 // Adapted from Facebook's mobile signup: identity first (name, birthday,
@@ -278,9 +279,18 @@ function StudentSignupForm() {
 export default function StudentSignupPage() {
   return (
     <AuthShell action={<Link href="/signup" className="btn btn-secondary btn-sm">Changer de profil</Link>}>
-      <Suspense fallback={null}>
-        <StudentSignupForm />
-      </Suspense>
+      <div className="auth-split">
+        <Suspense fallback={null}>
+          <StudentSignupForm />
+        </Suspense>
+        <aside className="auth-aside">
+          <SignupStudentIllustration />
+          <p>
+            Révisez le code depuis votre téléphone, réservez vos heures de conduite et suivez votre dossier de permis
+            en direct.
+          </p>
+        </aside>
+      </div>
     </AuthShell>
   );
 }

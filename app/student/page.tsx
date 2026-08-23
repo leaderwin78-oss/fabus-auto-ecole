@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getNextAppointment, getEnrollmentsWithProgress } from "@/lib/data/student";
+import { DashboardBanner } from "@/components/DashboardBanner";
 
 const TYPE_LABEL: Record<string, string> = {
   driving_session: "Séance de conduite",
@@ -33,6 +34,11 @@ export default async function StudentDashboardPage() {
 
   return (
     <>
+      <DashboardBanner
+        variant="student"
+        title="Votre parcours vers le permis"
+        subtitle="Révisez le code, réservez vos heures de conduite et suivez l'avancement de votre dossier."
+      />
       {nextAppointment ? (
         <div className="grid grid-cols-3 mb-8">
           <div className="card card-flat animate-fade-up" style={{ gridColumn: "span 2", background: "linear-gradient(135deg, var(--fabus-green), var(--fabus-green-dark))", color: "white", border: "none" }}>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DashboardBanner } from "@/components/DashboardBanner";
 
 export default async function SuperAdminDashboardPage() {
   const { profile } = await requireProfile();
@@ -24,6 +25,12 @@ export default async function SuperAdminDashboardPage() {
   const revenue = (revenuePayments ?? []).reduce((sum, p) => sum + p.amount_fcfa, 0);
 
   return (
+    <>
+    <DashboardBanner
+      variant="super_admin"
+      title="Vue d'ensemble de la plateforme"
+      subtitle="Auto-écoles, utilisateurs, abonnements et recettes, toutes écoles confondues."
+    />
     <div className="grid grid-cols-4">
       <div className="card stat-tile">
         <div className="stat-value">{orgCount ?? 0}</div>
@@ -46,5 +53,6 @@ export default async function SuperAdminDashboardPage() {
         <div className="stat-label">Chiffre d&apos;affaires plateforme (tous paiements réussis)</div>
       </div>
     </div>
+    </>
   );
 }
