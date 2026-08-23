@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { recordReferralJoin } from "@/lib/actions/referrals";
 import type { Organization } from "@/types/database";
 
 function SignupForm() {
@@ -73,6 +74,9 @@ function SignupForm() {
       setLoading(false);
       return;
     }
+
+    const refCode = searchParams.get("ref");
+    if (refCode) await recordReferralJoin(refCode, userId);
 
     if (!signUpData.session) {
       // Email confirmation required by the Supabase project's auth settings.

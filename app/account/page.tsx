@@ -4,6 +4,8 @@ import { ProfileForm } from "./ProfileForm";
 import { PasswordForm } from "./PasswordForm";
 import { AvatarUpload } from "./AvatarUpload";
 import { TwoFactorSection } from "./TwoFactorSection";
+import { SocialLinksForm } from "./SocialLinksForm";
+import { ReferralWidget } from "./ReferralWidget";
 
 const ROLE_HOME: Record<string, string> = {
   super_admin: "/super-admin",
@@ -32,6 +34,16 @@ export default async function AccountPage() {
         <div className="card">
           <h4 className="mb-4">Informations personnelles</h4>
           <ProfileForm fullName={profile.full_name} phone={profile.phone} />
+        </div>
+
+        <div className="card">
+          <h4 className="mb-4">Réseaux sociaux</h4>
+          <SocialLinksForm links={profile.social_links ?? {}} isPublic={profile.social_links_public ?? false} />
+        </div>
+
+        <div className="card">
+          <h4 className="mb-4">Inviter un ami</h4>
+          <ReferralWidget />
         </div>
 
         <div className="card">

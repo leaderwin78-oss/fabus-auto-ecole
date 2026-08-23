@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
+import { logActivity } from "@/lib/audit";
+import { computeCommission, type PaymentType } from "@/lib/payments/commission";
 import type { ActionResult } from "@/lib/actions/courses";
 import { getPaymentProvider, type ProviderId } from "@/lib/payments/provider";
 
@@ -16,6 +18,7 @@ export async function createPaymentRequest(formData: FormData): Promise<ActionRe
   const studentId = String(formData.get("student_id") ?? "");
   const amount = Number(formData.get("amount_fcfa") ?? 0);
   const provider = String(formData.get("provider") ?? "manual") as ProviderId;
+  const paymentType = String(formData.get("payment_type") ?? "registration") as PaymentType;
 
   if (!studentId || !Number.isFinite(amount) || amount <= 0) {
     return { ok: false, error: "Élève et montant valides requis." };
@@ -27,6 +30,7 @@ export async function createPaymentRequest(formData: FormData): Promise<ActionRe
     student_id: studentId,
     amount_fcfa: amount,
     provider,
+    payment_type: paymentType,
     status: "pending",
   });
 
@@ -37,15 +41,29 @@ export async function createPaymentRequest(formData: FormData): Promise<ActionRe
 }
 
 export async function markPaymentPaid(paymentId: string): Promise<ActionResult> {
-  const { profile } = await requireProfile();
+  const { userId, profile } = await requireProfile();
   if (!isOrgStaffRole(profile.role) && profile.role !== "super_admin") {
     return { ok: false, error: "Action réservée aux administrateurs." };
   }
 
   const supabase = await createClient();
+
+  const { data: pending } = await supabase.from("payments").select("*").eq("id", paymentId).single();
+  if (!pending) return { ok: false, error: "Paiement introuvable." };
+
+  // Commission/fee breakdown is computed here — server-side, at the moment
+  // of settlement — and never trusted from the client (section 8).
+  const breakdown = await computeCommission(supabase, pending.payment_type, pending.amount_fcfa);
+
   const { data: payment, error } = await supabase
     .from("payments")
-    .update({ status: "success", paid_at: new Date().toISOString() })
+    .update({
+      status: "success",
+      paid_at: new Date().toISOString(),
+      gross_amount_fcfa: breakdown.grossAmountFcfa,
+      platform_commission_fcfa: breakdown.platformCommissionFcfa,
+      seller_amount_fcfa: breakdown.sellerAmountFcfa,
+    })
     .eq("id", paymentId)
     .select()
     .single();
@@ -69,8 +87,22 @@ export async function markPaymentPaid(paymentId: string): Promise<ActionResult> 
     return { ok: false, error: `Paiement validé mais facture non générée : ${invoiceError.message}` };
   }
 
+  if (payment.extra_service_id) {
+    await supabase.from("service_bookings").update({ status: "confirmed" }).eq("id", payment.extra_service_id);
+  }
+
+  await logActivity({
+    organizationId: payment.organization_id,
+    actorId: userId,
+    action: `payment.settled:${payment.payment_type}`,
+    entityType: "payment",
+    entityId: payment.id,
+    metadata: { gross: breakdown.grossAmountFcfa, commission: breakdown.platformCommissionFcfa, rate: breakdown.ratePercent },
+  });
+
   revalidatePath("/admin/payments");
   revalidatePath("/student/payments");
+  revalidatePath("/super-admin/finance");
   return { ok: true };
 }
 

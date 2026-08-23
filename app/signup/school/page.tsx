@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { applyAsSchool } from "@/lib/actions/organizations";
 
 const STEPS = ["Informations générales", "Informations administratives", "Services", "Tarifs", "Équipements", "Validation"];
@@ -48,7 +49,8 @@ const initialState: FormState = {
   equip_vehicules: "", equip_simulateurs: "", equip_salles: "", password: "", confirmPassword: "", terms_accepted: false,
 };
 
-export default function SchoolSignupPage() {
+function SchoolSignupForm() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState<string | null>(null);
@@ -116,6 +118,8 @@ export default function SchoolSignupPage() {
     fd.set("equip_salles", form.equip_salles);
     fd.set("password", form.password);
     if (form.terms_accepted) fd.set("terms_accepted", "on");
+    const refCode = searchParams.get("ref");
+    if (refCode) fd.set("ref_code", refCode);
 
     const result = await applyAsSchool(fd);
     setSubmitting(false);
@@ -238,5 +242,13 @@ export default function SchoolSignupPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SchoolSignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SchoolSignupForm />
+    </Suspense>
   );
 }

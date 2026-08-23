@@ -44,6 +44,26 @@ export async function updateOwnAvatar(formData: FormData): Promise<ActionResult>
   return { ok: true };
 }
 
+const SOCIAL_PLATFORMS = ["facebook", "instagram", "twitter", "tiktok", "youtube", "linkedin"] as const;
+
+export async function updateSocialLinks(formData: FormData): Promise<ActionResult> {
+  const { userId } = await requireProfile();
+
+  const links: Record<string, string> = {};
+  for (const platform of SOCIAL_PLATFORMS) {
+    const value = String(formData.get(platform) ?? "").trim();
+    if (value) links[platform] = value;
+  }
+  const isPublic = formData.get("social_links_public") === "on";
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ social_links: links, social_links_public: isPublic }).eq("id", userId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function changeOwnPassword(formData: FormData): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
 

@@ -60,8 +60,20 @@ export function PostCard({
     startTransition(async () => { await reportPost(post.id, reason); });
   }
 
+  function shareUrl() {
+    return `${window.location.origin}/communaute#post-${post.id}`;
+  }
+
+  function shareWhatsApp() {
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${post.author_name} sur L'Auto École : ${shareUrl()}`)}`, "_blank");
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(shareUrl());
+  }
+
   return (
-    <div className="card">
+    <div className="card" id={`post-${post.id}`}>
       <div className="flex items-center gap-2 mb-4">
         <div className="avatar" style={{ width: 40, height: 40, fontSize: "0.9rem" }}>{post.author_name.charAt(0).toUpperCase()}</div>
         <div>
@@ -78,6 +90,12 @@ export function PostCard({
         </button>
         <button className="btn btn-secondary btn-sm" onClick={() => setShowComments((s) => !s)}>
           <i className="fa-regular fa-comment"></i> {comments.length}
+        </button>
+        <button className="btn btn-secondary btn-sm" onClick={shareWhatsApp} title="Partager sur WhatsApp">
+          <i className="fa-brands fa-whatsapp"></i>
+        </button>
+        <button className="btn btn-secondary btn-sm" onClick={copyLink} title="Copier le lien">
+          <i className="fa-solid fa-link"></i>
         </button>
         <button className="btn btn-outline btn-sm" style={{ marginLeft: "auto" }} onClick={report}>
           <i className="fa-solid fa-flag"></i>

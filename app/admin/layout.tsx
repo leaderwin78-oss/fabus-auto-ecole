@@ -12,6 +12,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/payments", label: "Paiements", icon: "fa-solid fa-credit-card" },
   { href: "/admin/messages", label: "Messages", icon: "fa-solid fa-message" },
   { href: "/communaute", label: "Communauté", icon: "fa-solid fa-users" },
+  { href: "/assistant", label: "Assistant IA", icon: "fa-solid fa-robot" },
   { href: "/admin/settings", label: "Paramètres", icon: "fa-solid fa-gear" },
   { href: "/account", label: "Mon compte", icon: "fa-solid fa-user-gear" },
 ];

@@ -2,9 +2,10 @@
 // If you later run `supabase gen types typescript`, that generated file
 // can replace this one — keep the shapes in sync until then.
 
-export type UserRole = "super_admin" | "admin" | "instructor" | "student";
-export type OrgStatus = "active" | "suspended" | "archived";
+export type UserRole = "super_admin" | "admin" | "admin_auto_ecole" | "instructor" | "student";
+export type OrgStatus = "pending" | "active" | "suspended" | "archived" | "rejected";
 export type SubscriptionStatus = "trialing" | "active" | "past_due" | "canceled";
+export type PaymentType = "registration" | "course" | "extra_service" | "subscription" | "other";
 export type ContentStatus = "draft" | "published" | "archived";
 export type LessonContentType = "text" | "video" | "pdf" | "audio" | "quiz" | "exercise" | "link";
 export type QuizKind = "quiz" | "mock_exam";
@@ -24,6 +25,19 @@ export interface Organization {
   email: string | null;
   logo_url: string | null;
   status: OrgStatus;
+  responsable_name: string | null;
+  address: string | null;
+  quartier: string | null;
+  region: string | null;
+  gps_lat: number | null;
+  gps_lng: number | null;
+  cover_photo_url: string | null;
+  description: string | null;
+  id_number: string | null;
+  services: string[];
+  pricing: Record<string, number | null>;
+  equipment: Record<string, string | null>;
+  rejection_reason: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +49,9 @@ export interface Profile {
   full_name: string;
   phone: string | null;
   avatar_url: string | null;
+  must_change_password: boolean;
+  social_links: Record<string, string>;
+  social_links_public: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -193,6 +210,12 @@ export interface Payment {
   status: PaymentStatus;
   provider: PaymentProvider;
   provider_reference: string | null;
+  payment_type: PaymentType;
+  gross_amount_fcfa: number | null;
+  platform_commission_fcfa: number;
+  seller_amount_fcfa: number | null;
+  course_id: string | null;
+  extra_service_id: string | null;
   paid_at: string | null;
   created_at: string;
 }

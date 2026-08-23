@@ -8,9 +8,11 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/student/calendar", label: "Calendrier", icon: "fa-solid fa-calendar-days" },
   { href: "/student/documents", label: "Mon Dossier Admin", icon: "fa-solid fa-folder-open" },
   { href: "/student/quizzes", label: "Quiz & Examens", icon: "fa-solid fa-circle-question" },
+  { href: "/student/services", label: "Prestations", icon: "fa-solid fa-hand-holding-dollar" },
   { href: "/student/payments", label: "Paiements", icon: "fa-solid fa-credit-card" },
   { href: "/student/messages", label: "Messages", icon: "fa-solid fa-message" },
   { href: "/communaute", label: "Communauté", icon: "fa-solid fa-users" },
+  { href: "/assistant", label: "Assistant IA", icon: "fa-solid fa-robot" },
   { href: "/account", label: "Mon compte", icon: "fa-solid fa-user-gear" },
 ];
 

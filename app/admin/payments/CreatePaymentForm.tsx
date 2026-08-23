@@ -40,6 +40,14 @@ export function CreatePaymentForm({ students }: { students: { id: string; full_n
           <input name="amount_fcfa" type="number" min={1} required />
         </div>
         <div className="field">
+          <label>Type</label>
+          <select name="payment_type" defaultValue="registration">
+            <option value="registration">Inscription (frais de gestion plateforme)</option>
+            <option value="course">Formation / cours (commission plateforme)</option>
+            <option value="other">Autre (aucune commission)</option>
+          </select>
+        </div>
+        <div className="field">
           <label>Moyen prévu</label>
           <select name="provider" defaultValue="manual">
             <option value="manual">Espèces / virement</option>

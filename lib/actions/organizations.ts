@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
+import { recordReferralJoin } from "@/lib/actions/referrals";
 import type { ActionResult } from "@/lib/actions/courses";
 
 function slugify(name: string) {
@@ -84,6 +85,32 @@ export async function updateOrganizationStatus(orgId: string, status: OrgStatus)
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ status }).eq("id", orgId);
   if (error) return { ok: false, error: error.message };
+
+  // First approval starts the free trial (section 6): 3 months (configurable
+  // via platform_settings.trial_days), only if no subscription exists yet —
+  // re-approving a previously suspended school never resets its trial/plan.
+  if (status === "active") {
+    const { data: existingSub } = await supabase.from("subscriptions").select("id").eq("organization_id", orgId).limit(1).maybeSingle();
+    if (!existingSub) {
+      const { data: settings } = await supabase.from("platform_settings").select("trial_days").eq("id", true).single();
+      const { data: freePlan } = await supabase.from("plans").select("id").eq("code", "free").maybeSingle();
+      const trialDays = settings?.trial_days ?? 90;
+      const trialStart = new Date();
+      const trialEnd = new Date(trialStart.getTime() + trialDays * 24 * 60 * 60 * 1000);
+
+      if (freePlan) {
+        await supabase.from("subscriptions").insert({
+          organization_id: orgId,
+          plan_id: freePlan.id,
+          status: "trialing",
+          trial_start: trialStart.toISOString(),
+          trial_end: trialEnd.toISOString(),
+          current_period_start: trialStart.toISOString(),
+          current_period_end: trialEnd.toISOString(),
+        });
+      }
+    }
+  }
 
   await logActivity({ organizationId: orgId, actorId: check.userId, action: `organization.status_changed:${status}`, entityType: "organization", entityId: orgId });
   revalidatePath("/super-admin/organizations");
@@ -188,6 +215,9 @@ export async function applyAsSchool(formData: FormData): Promise<ActionResult> {
     phone: phone || null,
   });
   if (profileError) return { ok: false, error: `Demande enregistrée mais profil non créé : ${profileError.message}.` };
+
+  const refCode = String(formData.get("ref_code") ?? "").trim();
+  if (refCode) await recordReferralJoin(refCode, created.user.id);
 
   await logActivity({ organizationId: org.id, actorId: created.user.id, action: "organization.applied", entityType: "organization", entityId: org.id });
   return { ok: true };

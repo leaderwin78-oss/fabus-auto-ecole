@@ -33,7 +33,7 @@ export default async function AdminPaymentsPage() {
         ) : (
           <div className="table-wrap">
             <table className="data-table">
-              <thead><tr><th>Élève</th><th>Montant</th><th>Statut</th><th>Moyen</th><th></th></tr></thead>
+              <thead><tr><th>Élève</th><th>Type</th><th>Montant</th><th>Commission</th><th>Net auto-école</th><th>Statut</th><th></th></tr></thead>
               <tbody>
                 {(payments ?? []).map((p) => {
                   const student = Array.isArray(p.student) ? p.student[0] : p.student;
@@ -41,9 +41,11 @@ export default async function AdminPaymentsPage() {
                   return (
                     <tr key={p.id}>
                       <td>{student?.full_name ?? "—"}</td>
+                      <td>{p.payment_type}</td>
                       <td>{p.amount_fcfa.toLocaleString("fr-FR")} F</td>
+                      <td>{p.status === "success" ? `${p.platform_commission_fcfa.toLocaleString("fr-FR")} F` : "—"}</td>
+                      <td>{p.status === "success" ? `${(p.seller_amount_fcfa ?? p.amount_fcfa).toLocaleString("fr-FR")} F` : "—"}</td>
                       <td><span className={`badge ${STATUS_BADGE[p.status]}`}>{p.status}</span></td>
-                      <td>{p.provider}</td>
                       <td className="flex gap-2">
                         {p.status === "pending" && <MarkPaidButton paymentId={p.id} />}
                         {invoiceId && <Link href={`/admin/invoices/${invoiceId}`} className="btn btn-secondary btn-sm">Facture</Link>}

@@ -117,19 +117,47 @@ export async function enrollInCourse(courseId: string): Promise<ActionResult> {
   if (!profile.organization_id) return { ok: false, error: "Organisation introuvable." };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("enrollments").insert({
-    organization_id: profile.organization_id,
-    student_id: userId,
-    course_id: courseId,
-    status: "active",
-  });
+
+  const { data: course } = await supabase.from("courses").select("organization_id, price_fcfa").eq("id", courseId).single();
+  if (!course) return { ok: false, error: "Formation introuvable." };
+  if (course.organization_id !== profile.organization_id) {
+    return { ok: false, error: "Cette formation appartient à une autre auto-école — contactez-la pour vous y inscrire." };
+  }
+
+  const { data: enrollment, error } = await supabase
+    .from("enrollments")
+    .insert({
+      organization_id: profile.organization_id,
+      student_id: userId,
+      course_id: courseId,
+      status: "active",
+    })
+    .select()
+    .single();
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Vous êtes déjà inscrit à cette formation." };
     return { ok: false, error: error.message };
   }
+
+  // Paid courses create a pending payment the school settles (commission
+  // computed server-side at settlement — see lib/payments/commission.ts).
+  if (course.price_fcfa > 0) {
+    await supabase.from("payments").insert({
+      organization_id: profile.organization_id,
+      student_id: userId,
+      enrollment_id: enrollment.id,
+      course_id: courseId,
+      amount_fcfa: course.price_fcfa,
+      payment_type: "course",
+      provider: "manual",
+      status: "pending",
+    });
+  }
+
   revalidatePath("/student/courses");
   revalidatePath("/student");
+  revalidatePath("/admin/payments");
   return { ok: true };
 }
 
