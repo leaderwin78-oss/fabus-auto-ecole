@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 // Maps a Postgres exclusion-constraint violation (double-booking) to a
 // message a non-technical user can act on, instead of a raw DB error.
@@ -100,7 +101,7 @@ export async function addSessionNote(formData: FormData): Promise<ActionResult> 
     observations,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "appointments") };
   revalidatePath("/instructor/calendar");
   return { ok: true };
 }

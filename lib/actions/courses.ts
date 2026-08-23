@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
+import { urlExterneOuNull } from "@/lib/validation";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export interface ActionResult {
   ok: boolean;
@@ -40,7 +42,7 @@ export async function createCourse(formData: FormData): Promise<ActionResult> {
     created_by: check.userId,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "courses") };
   revalidatePath("/admin/courses");
   return { ok: true };
 }
@@ -51,7 +53,7 @@ export async function updateCourseStatus(courseId: string, status: "draft" | "pu
 
   const supabase = await createClient();
   const { error } = await supabase.from("courses").update({ status }).eq("id", courseId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "courses") };
   revalidatePath("/admin/courses");
   revalidatePath("/student/courses");
   return { ok: true };
@@ -75,7 +77,7 @@ export async function createChapter(formData: FormData): Promise<ActionResult> {
     status: "published",
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "courses") };
   revalidatePath(`/admin/courses/${courseId}`);
   return { ok: true };
 }
@@ -89,7 +91,13 @@ export async function createLesson(formData: FormData): Promise<ActionResult> {
   const title = String(formData.get("title") ?? "").trim();
   const contentType = String(formData.get("content_type") ?? "text");
   const contentBody = String(formData.get("content_body") ?? "").trim() || null;
-  const contentUrl = String(formData.get("content_url") ?? "").trim() || null;
+  // Cette adresse est rendue en <a href> dans l'espace élève. Sans contrôle du
+  // schéma, un `javascript:...` saisi ici devient du XSS stocké au premier clic
+  // d'un élève — une escalade d'un admin d'auto-école vers ses propres élèves.
+  const contentUrl = urlExterneOuNull(String(formData.get("content_url") ?? ""));
+  if (contentUrl === undefined) {
+    return { ok: false, error: "L'adresse du contenu doit commencer par http:// ou https://." };
+  }
 
   if (!title || !chapterId) return { ok: false, error: "Titre et chapitre requis." };
 
@@ -106,7 +114,7 @@ export async function createLesson(formData: FormData): Promise<ActionResult> {
     status: "published",
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "courses") };
   revalidatePath(`/admin/courses/${courseId}`);
   return { ok: true };
 }
@@ -137,7 +145,7 @@ export async function enrollInCourse(courseId: string): Promise<ActionResult> {
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "Vous êtes déjà inscrit à cette formation." };
-    return { ok: false, error: error.message };
+    return { ok: false, error: erreurInterne(error, "courses") };
   }
 
   // Paid courses create a pending payment the school settles (commission
@@ -170,7 +178,7 @@ export async function markLessonComplete(lessonId: string): Promise<ActionResult
     .from("lesson_progress")
     .upsert({ student_id: userId, lesson_id: lessonId, completed_at: new Date().toISOString() }, { onConflict: "student_id,lesson_id" });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "courses") };
   revalidatePath("/student");
   revalidatePath("/student/courses");
   return { ok: true };

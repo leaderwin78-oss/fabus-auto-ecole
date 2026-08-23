@@ -73,8 +73,45 @@ async function buildContext(role: string, userId: string, organizationId: string
 - Paiement en attente : ${pendingTotal > 0 ? `${pendingTotal.toLocaleString("fr-FR")} F CFA` : "aucun"}`;
 }
 
+// Chaque appel coûte de l'argent à la plateforme : sans plafond, un compte
+// gratuit créé en trente secondes peut boucler dessus et faire exploser la
+// facture. Le compteur vit en base (voir consume_ai_quota dans
+// 0010_security_hardening.sql) et non en mémoire : Vercel est sans état, un
+// compteur en mémoire serait remis à zéro à chaque déploiement.
+const MAX_APPELS_PAR_HEURE = 20;
+const MAX_CARACTERES_CONVERSATION = 8000;
+const MAX_MESSAGES = 10;
+
 export async function askAssistant(history: ChatMessage[]): Promise<{ ok: boolean; reply?: string; error?: string }> {
   const { userId, profile } = await requireProfile();
+
+  // L'historique vient du navigateur : il faut le borner avant de le payer.
+  if (!Array.isArray(history) || history.length === 0) {
+    return { ok: false, error: "Message vide." };
+  }
+  const recent = history.slice(-MAX_MESSAGES).filter(
+    (m) => (m?.role === "user" || m?.role === "assistant") && typeof m?.content === "string" && m.content.trim().length > 0
+  );
+  if (recent.length === 0) {
+    return { ok: false, error: "Message vide." };
+  }
+  const totalChars = recent.reduce((n, m) => n + m.content.length, 0);
+  if (totalChars > MAX_CARACTERES_CONVERSATION) {
+    return { ok: false, error: "Conversation trop longue. Rechargez la page pour repartir sur un échange neuf." };
+  }
+
+  const supabase = await createClient();
+  const { data: allowed, error: quotaError } = await supabase.rpc("consume_ai_quota", { p_max: MAX_APPELS_PAR_HEURE });
+  if (quotaError) {
+    return { ok: false, error: "Assistant momentanément indisponible." };
+  }
+  if (!allowed) {
+    return {
+      ok: false,
+      error: `Vous avez atteint la limite de ${MAX_APPELS_PAR_HEURE} questions par heure. Réessayez un peu plus tard.`,
+    };
+  }
+
   const context = await buildContext(profile.role, userId, profile.organization_id);
 
   const systemPrompt = `${BASE_RULES}
@@ -82,5 +119,5 @@ export async function askAssistant(history: ChatMessage[]): Promise<{ ok: boolea
 Rôle de l'utilisateur : ${profile.role}
 ${context}`;
 
-  return callAssistant(systemPrompt, history.slice(-10));
+  return callAssistant(systemPrompt, recent);
 }

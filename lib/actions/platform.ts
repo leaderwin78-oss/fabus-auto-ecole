@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function updatePlatformSettings(formData: FormData): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
@@ -37,7 +38,7 @@ export async function updatePlatformSettings(formData: FormData): Promise<Action
     })
     .eq("id", true);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "platform") };
 
   await logActivity({ organizationId: null, actorId: userId, action: "platform_settings.updated", metadata: { courseCommission, registrationFee, extraServiceCommission, trialDays } });
   revalidatePath("/super-admin/finance");

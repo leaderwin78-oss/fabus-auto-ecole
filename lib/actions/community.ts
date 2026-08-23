@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function createPost(formData: FormData): Promise<ActionResult> {
   const { userId } = await requireProfile();
@@ -13,7 +14,7 @@ export async function createPost(formData: FormData): Promise<ActionResult> {
 
   const supabase = await createClient();
   const { error } = await supabase.from("posts").insert({ author_id: userId, body });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "community") };
 
   revalidatePath("/communaute");
   return { ok: true };
@@ -41,7 +42,7 @@ export async function addComment(formData: FormData): Promise<ActionResult> {
 
   const supabase = await createClient();
   const { error } = await supabase.from("post_comments").insert({ post_id: postId, author_id: userId, body });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "community") };
 
   revalidatePath("/communaute");
   return { ok: true };
@@ -51,7 +52,7 @@ export async function reportPost(postId: string, reason: string): Promise<Action
   const { userId } = await requireProfile();
   const supabase = await createClient();
   const { error } = await supabase.from("post_reports").insert({ post_id: postId, reporter_id: userId, reason });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "community") };
   return { ok: true };
 }
 
@@ -59,7 +60,7 @@ export async function deletePost(postId: string): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
   const supabase = await createClient();
   const { error } = await supabase.from("posts").delete().eq("id", postId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "community") };
 
   if (profile.role === "super_admin") {
     await logActivity({ organizationId: null, actorId: userId, action: "post.deleted_by_moderator", entityType: "post", entityId: postId });
@@ -74,7 +75,7 @@ export async function resolveReport(reportId: string): Promise<ActionResult> {
 
   const supabase = await createClient();
   const { error } = await supabase.from("post_reports").update({ resolved: true }).eq("id", reportId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "community") };
 
   revalidatePath("/super-admin/community");
   return { ok: true };
@@ -86,7 +87,7 @@ export async function hidePost(postId: string): Promise<ActionResult> {
 
   const supabase = await createClient();
   const { error } = await supabase.from("posts").update({ status: "hidden" }).eq("id", postId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "community") };
 
   await logActivity({ organizationId: null, actorId: userId, action: "post.hidden_by_moderator", entityType: "post", entityId: postId });
   revalidatePath("/communaute");

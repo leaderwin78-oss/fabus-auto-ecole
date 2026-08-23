@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function createResourceLink(formData: FormData): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
@@ -23,7 +24,7 @@ export async function createResourceLink(formData: FormData): Promise<ActionResu
 
   const supabase = await createClient();
   const { error } = await supabase.from("resource_links").insert({ title, url, category, description, created_by: userId });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "resources") };
 
   revalidatePath("/super-admin/resources");
   revalidatePath("/instructor/resources");
@@ -36,7 +37,7 @@ export async function deleteResourceLink(id: string): Promise<ActionResult> {
 
   const supabase = await createClient();
   const { error } = await supabase.from("resource_links").delete().eq("id", id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "resources") };
 
   revalidatePath("/super-admin/resources");
   revalidatePath("/instructor/resources");

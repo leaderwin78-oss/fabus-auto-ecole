@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 // Admins/instructors are never self-service: only an org admin (or the
 // super_admin) can provision one, and it always happens server-side with the
@@ -33,7 +34,7 @@ export async function inviteStaffMember(formData: FormData): Promise<ActionResul
   });
 
   if (inviteError || !invited.user) {
-    return { ok: false, error: inviteError?.message ?? "Échec de l'invitation." };
+    return { ok: false, error: erreurInterne(inviteError ?? null, "people") };
   }
 
   const { error: profileError } = await admin.from("profiles").insert({
@@ -44,7 +45,7 @@ export async function inviteStaffMember(formData: FormData): Promise<ActionResul
     phone,
   });
 
-  if (profileError) return { ok: false, error: profileError.message };
+  if (profileError) return { ok: false, error: erreurInterne(profileError, "people") };
 
   revalidatePath("/admin/instructors");
   revalidatePath("/admin/students");
@@ -81,7 +82,7 @@ async function reviewInstructorApplication(
     .from("profiles")
     .update({ status, rejection_reason: status === "rejected" ? reason : null })
     .eq("id", userId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "people") };
 
   await supabase.from("notifications").insert({
     organization_id: profile.organization_id,
@@ -134,7 +135,7 @@ export async function removeStaffMember(userId: string): Promise<ActionResult> {
 
   const admin = createAdminClient();
   const { error } = await admin.auth.admin.deleteUser(userId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "people") };
 
   revalidatePath("/admin/instructors");
   revalidatePath("/admin/students");

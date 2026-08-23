@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
+import { MontantFcfa } from "@/lib/validation";
+import { z } from "zod";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function createInstructorService(formData: FormData): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
@@ -12,10 +15,20 @@ export async function createInstructorService(formData: FormData): Promise<Actio
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
-  const duration = Number(formData.get("duration_minutes") ?? 0) || null;
-  const price = Number(formData.get("price_fcfa") ?? 0);
-
-  if (!title || !Number.isFinite(price) || price < 0) return { ok: false, error: "Titre et prix valides requis." };
+  const parsed = z
+    .object({
+      duration_minutes: z.coerce.number().int().min(0).max(24 * 60),
+      price_fcfa: MontantFcfa,
+    })
+    .safeParse({
+      duration_minutes: formData.get("duration_minutes") ?? 0,
+      price_fcfa: formData.get("price_fcfa") ?? 0,
+    });
+  if (!title || !parsed.success) {
+    return { ok: false, error: "Titre, durée (max 24 h) et prix valides requis." };
+  }
+  const duration = parsed.data.duration_minutes || null;
+  const price = parsed.data.price_fcfa;
 
   const supabase = await createClient();
   const { error } = await supabase.from("instructor_services").insert({
@@ -27,7 +40,7 @@ export async function createInstructorService(formData: FormData): Promise<Actio
     price_fcfa: price,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "services") };
   revalidatePath("/instructor/services");
   revalidatePath("/student/services");
   return { ok: true };
@@ -37,7 +50,7 @@ export async function toggleInstructorService(serviceId: string, isActive: boole
   const { userId } = await requireProfile();
   const supabase = await createClient();
   const { error } = await supabase.from("instructor_services").update({ is_active: isActive }).eq("id", serviceId).eq("instructor_id", userId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "services") };
 
   revalidatePath("/instructor/services");
   revalidatePath("/student/services");
@@ -48,7 +61,7 @@ export async function deleteInstructorService(serviceId: string): Promise<Action
   const { userId } = await requireProfile();
   const supabase = await createClient();
   const { error } = await supabase.from("instructor_services").delete().eq("id", serviceId).eq("instructor_id", userId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "services") };
 
   revalidatePath("/instructor/services");
   return { ok: true };
@@ -76,7 +89,7 @@ export async function bookInstructorService(serviceId: string): Promise<ActionRe
     })
     .select()
     .single();
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "services") };
 
   if (service.price_fcfa > 0) {
     const { data: payment } = await supabase

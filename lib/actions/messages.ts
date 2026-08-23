@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function startConversation(otherUserId: string): Promise<{ ok: boolean; conversationId?: string; error?: string }> {
   const { userId, profile } = await requireProfile();
@@ -28,13 +29,13 @@ export async function startConversation(otherUserId: string): Promise<{ ok: bool
   const { error } = await supabase
     .from("conversations")
     .insert({ id: conversationId, organization_id: profile.organization_id });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "messages") };
 
   const { error: participantsError } = await supabase.from("conversation_participants").insert([
     { conversation_id: conversationId, user_id: userId },
     { conversation_id: conversationId, user_id: otherUserId },
   ]);
-  if (participantsError) return { ok: false, error: participantsError.message };
+  if (participantsError) return { ok: false, error: erreurInterne(participantsError, "messages") };
 
   return { ok: true, conversationId };
 }
@@ -45,7 +46,7 @@ export async function sendMessage(conversationId: string, body: string): Promise
 
   const supabase = await createClient();
   const { error } = await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: userId, body: body.trim() });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "messages") };
 
   await supabase
     .from("conversation_participants")

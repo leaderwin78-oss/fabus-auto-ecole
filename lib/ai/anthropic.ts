@@ -45,8 +45,17 @@ export async function callAssistant(systemPrompt: string, messages: ChatMessage[
     });
 
     if (!response.ok) {
+      // Le corps de la réponse amont peut contenir des détails de compte ou de
+      // clé : il reste dans les logs serveur, jamais dans le navigateur.
       const body = await response.text();
-      return { ok: false, error: `Erreur de l'assistant IA (${response.status}): ${body.slice(0, 200)}` };
+      console.error("[anthropic]", response.status, body.slice(0, 500));
+      return {
+        ok: false,
+        error:
+          response.status === 429
+            ? "L'assistant est très sollicité en ce moment. Réessayez dans quelques instants."
+            : "L'assistant IA est momentanément indisponible.",
+      };
     }
 
     const data = await response.json();

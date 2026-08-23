@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function updateOrganizationSettings(formData: FormData): Promise<ActionResult> {
   const { profile } = await requireProfile();
@@ -21,7 +22,7 @@ export async function updateOrganizationSettings(formData: FormData): Promise<Ac
 
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ name, city, phone, email }).eq("id", profile.organization_id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "settings") };
 
   revalidatePath("/admin/settings");
   return { ok: true };

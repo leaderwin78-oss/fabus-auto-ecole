@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
+import { fichierValide, TYPES_DOCUMENT } from "@/lib/validation";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function uploadDocument(formData: FormData): Promise<ActionResult> {
   const { userId, profile } = await requireProfile();
@@ -14,14 +16,17 @@ export async function uploadDocument(formData: FormData): Promise<ActionResult> 
   const file = formData.get("file") as File | null;
 
   if (!title) return { ok: false, error: "Le titre est requis." };
-  if (!file || file.size === 0) return { ok: false, error: "Choisissez un fichier." };
-  if (file.size > 10 * 1024 * 1024) return { ok: false, error: "Fichier trop volumineux (max 10 Mo)." };
+
+  // Le type MIME n'était pas vérifié et le nom fourni par le client était
+  // repris tel quel dans le chemin de stockage.
+  const verdict = fichierValide(file as File, TYPES_DOCUMENT, 10 * 1024 * 1024);
+  if (!verdict.ok) return { ok: false, error: verdict.error };
 
   const supabase = await createClient();
-  const path = `${profile.organization_id}/${userId}/${Date.now()}-${file.name}`;
+  const path = `${profile.organization_id}/${userId}/${Date.now()}.${verdict.extension}`;
 
-  const { error: uploadError } = await supabase.storage.from("documents").upload(path, file, {
-    contentType: file.type || undefined,
+  const { error: uploadError } = await supabase.storage.from("documents").upload(path, file as File, {
+    contentType: (file as File).type,
   });
   if (uploadError) return { ok: false, error: `Échec de l'envoi du fichier : ${uploadError.message}` };
 
@@ -35,7 +40,7 @@ export async function uploadDocument(formData: FormData): Promise<ActionResult> 
     uploaded_at: new Date().toISOString(),
   });
 
-  if (insertError) return { ok: false, error: insertError.message };
+  if (insertError) return { ok: false, error: erreurInterne(insertError, "documents") };
 
   revalidatePath("/student/documents");
   revalidatePath("/admin/students");
@@ -53,7 +58,7 @@ export async function updateDocumentStatus(
 
   const supabase = await createClient();
   const { error } = await supabase.from("documents").update({ status }).eq("id", documentId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "documents") };
 
   revalidatePath("/admin/students");
   revalidatePath("/student/documents");

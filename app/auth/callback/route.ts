@@ -8,7 +8,14 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    // L'échec était ignoré : l'utilisateur atterrissait sur /dashboard, se
+    // faisait renvoyer au login, et n'apprenait jamais que son lien avait
+    // expiré. Le détail reste côté serveur, le motif générique côté client.
+    if (error) {
+      console.error("[auth/callback]", error.message);
+      return NextResponse.redirect(`${origin}/login?erreur=lien_invalide`);
+    }
   }
 
   return NextResponse.redirect(`${origin}/dashboard`);

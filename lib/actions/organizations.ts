@@ -8,6 +8,7 @@ import { logActivity } from "@/lib/audit";
 import { recordReferralJoin } from "@/lib/actions/referrals";
 import { ensureEmailAvailable } from "@/lib/signup/account";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 function slugify(name: string) {
   return name
@@ -45,7 +46,7 @@ export async function createOrganization(formData: FormData): Promise<ActionResu
     .select()
     .single();
 
-  if (orgError || !org) return { ok: false, error: orgError?.message ?? "Échec de création de l'auto-école." };
+  if (orgError || !org) return { ok: false, error: erreurInterne(orgError ?? null, "organizations") };
 
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(adminEmail, {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
@@ -85,7 +86,7 @@ export async function updateOrganizationStatus(orgId: string, status: OrgStatus)
 
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ status }).eq("id", orgId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "organizations") };
 
   // First approval starts the free trial (section 6): 3 months (configurable
   // via platform_settings.trial_days), only if no subscription exists yet —
@@ -154,7 +155,7 @@ export async function rejectOrganization(orgId: string, reason: string): Promise
 
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ status: "rejected", rejection_reason: reason || null }).eq("id", orgId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "organizations") };
 
   const notifyAdmin = createAdminClient();
   const { data: staff } = await notifyAdmin
@@ -255,7 +256,7 @@ export async function applyAsSchool(formData: FormData): Promise<ActionResult> {
     .select()
     .single();
 
-  if (orgError || !org) return { ok: false, error: orgError?.message ?? "Échec de la création de la demande." };
+  if (orgError || !org) return { ok: false, error: erreurInterne(orgError ?? null, "organizations") };
 
   const { data: created, error: createUserError } = await admin.auth.admin.createUser({
     email,
@@ -340,7 +341,7 @@ export async function upsertPlan(formData: FormData): Promise<ActionResult> {
     is_active: true,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "organizations") };
   revalidatePath("/super-admin/plans");
   return { ok: true };
 }

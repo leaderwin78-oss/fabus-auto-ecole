@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 async function requireSuperAdmin() {
   const { userId, profile } = await requireProfile();
@@ -31,7 +32,7 @@ export async function createAnnouncement(formData: FormData): Promise<ActionResu
     author_id: check.userId,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "announcements") };
   revalidatePath("/super-admin/announcements");
   return { ok: true };
 }
@@ -45,7 +46,7 @@ export async function updateAnnouncementStatus(id: string, status: "draft" | "pu
     .from("announcements")
     .update({ status, published_at: status === "published" ? new Date().toISOString() : undefined })
     .eq("id", id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "announcements") };
 
   await logActivity({ organizationId: null, actorId: check.userId, action: `announcement.${status}`, entityType: "announcement", entityId: id });
   revalidatePath("/super-admin/announcements");

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 async function requireStaff() {
   const { userId, profile } = await requireProfile();
@@ -35,7 +36,7 @@ export async function createQuiz(formData: FormData): Promise<ActionResult> {
     status: "draft",
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "quizzes") };
   revalidatePath("/admin/quizzes");
   return { ok: true };
 }
@@ -46,7 +47,7 @@ export async function updateQuizStatus(quizId: string, status: "draft" | "publis
 
   const supabase = await createClient();
   const { error } = await supabase.from("quizzes").update({ status }).eq("id", quizId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "quizzes") };
 
   revalidatePath("/admin/quizzes");
   revalidatePath("/student/quizzes");
@@ -77,7 +78,7 @@ export async function addQuizQuestion(formData: FormData): Promise<ActionResult>
     .select()
     .single();
 
-  if (questionError || !question) return { ok: false, error: questionError?.message ?? "Erreur." };
+  if (questionError || !question) return { ok: false, error: erreurInterne(questionError ?? null, "quizzes") };
 
   const { error: answersError } = await supabase.from("quiz_answers").insert(
     options.map((text, i) => ({
@@ -88,7 +89,7 @@ export async function addQuizQuestion(formData: FormData): Promise<ActionResult>
     }))
   );
 
-  if (answersError) return { ok: false, error: answersError.message };
+  if (answersError) return { ok: false, error: erreurInterne(answersError, "quizzes") };
   revalidatePath(`/admin/quizzes/${quizId}`);
   return { ok: true };
 }
@@ -126,7 +127,7 @@ export async function submitQuizAttempt(quizId: string, answers: Record<string, 
   await requireProfile();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("submit_quiz_attempt", { p_quiz_id: quizId, p_answers: answers });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "quizzes") };
 
   revalidatePath("/student/quizzes");
   return { ok: true, result: data as QuizAttemptResult };

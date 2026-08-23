@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 async function requireSuperAdmin() {
   const { userId, profile } = await requireProfile();
@@ -44,7 +45,7 @@ export async function publishPrivacyPolicy(policyId: string): Promise<ActionResu
   // Only one version is "published" (current) at a time — archive the rest.
   await supabase.from("privacy_policies").update({ status: "archived" }).eq("status", "published");
   const { error } = await supabase.from("privacy_policies").update({ status: "published", published_at: new Date().toISOString() }).eq("id", policyId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "privacy") };
 
   await logActivity({ organizationId: null, actorId: check.userId, action: "privacy_policy.published", entityType: "privacy_policy", entityId: policyId });
   revalidatePath("/super-admin/privacy-policy");
@@ -63,6 +64,6 @@ export async function acceptCurrentPrivacyPolicy(): Promise<ActionResult> {
     { user_id: userId, policy_id: policy.id },
     { onConflict: "user_id,policy_id" }
   );
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "privacy") };
   return { ok: true };
 }

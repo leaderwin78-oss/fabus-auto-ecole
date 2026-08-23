@@ -5,8 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import { computeCommission, type PaymentType } from "@/lib/payments/commission";
+import { MontantFcfaPositif, Uuid } from "@/lib/validation";
+import { z } from "zod";
 import type { ActionResult } from "@/lib/actions/courses";
 import { getPaymentProvider, type ProviderId } from "@/lib/payments/provider";
+import { erreurInterne } from "@/lib/actions/errors";
 
 export async function createPaymentRequest(formData: FormData): Promise<ActionResult> {
   const { profile } = await requireProfile();
@@ -15,14 +18,21 @@ export async function createPaymentRequest(formData: FormData): Promise<ActionRe
   }
   if (!profile.organization_id) return { ok: false, error: "Organisation introuvable." };
 
-  const studentId = String(formData.get("student_id") ?? "");
-  const amount = Number(formData.get("amount_fcfa") ?? 0);
   const provider = String(formData.get("provider") ?? "manual") as ProviderId;
   const paymentType = String(formData.get("payment_type") ?? "registration") as PaymentType;
 
-  if (!studentId || !Number.isFinite(amount) || amount <= 0) {
-    return { ok: false, error: "Élève et montant valides requis." };
+  // Le montant n'était borné que par le bas : un entier arbitrairement grand,
+  // ou un identifiant d'élève qui n'est pas un UUID, atteignait la base.
+  const parsed = z
+    .object({ student_id: Uuid, amount_fcfa: MontantFcfaPositif })
+    .safeParse({
+      student_id: String(formData.get("student_id") ?? ""),
+      amount_fcfa: formData.get("amount_fcfa") ?? 0,
+    });
+  if (!parsed.success) {
+    return { ok: false, error: "Élève et montant valides requis (montant entier, supérieur à 0)." };
   }
+  const { student_id: studentId, amount_fcfa: amount } = parsed.data;
 
   const supabase = await createClient();
   const { error } = await supabase.from("payments").insert({
@@ -34,7 +44,7 @@ export async function createPaymentRequest(formData: FormData): Promise<ActionRe
     status: "pending",
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "payments") };
   revalidatePath("/admin/payments");
   revalidatePath("/student/payments");
   return { ok: true };
@@ -68,7 +78,7 @@ export async function markPaymentPaid(paymentId: string): Promise<ActionResult> 
     .select()
     .single();
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: erreurInterne(error, "payments") };
 
   // Every successful payment gets a real invoice (section 14: "reçu, facture").
   // The number is randomized rather than sequential to avoid a race between

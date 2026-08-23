@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
 import type { ActionResult } from "@/lib/actions/courses";
+import { erreurInterne } from "@/lib/actions/errors";
 
 function generateCode(fullName: string): string {
   const base = fullName.split(" ")[0]?.toLowerCase().replace(/[^a-z]/g, "") ?? "ami";
@@ -19,7 +20,7 @@ export async function getOrCreateReferralCode(): Promise<{ code: string } | { er
 
   const code = generateCode(profile.full_name);
   const { error } = await supabase.from("referrals").insert({ inviter_id: userId, code });
-  if (error) return { error: error.message };
+  if (error) return { error: erreurInterne(error, "referrals") };
   return { code };
 }
 
