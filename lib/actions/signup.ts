@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/audit";
 import { recordReferralJoin } from "@/lib/actions/referrals";
+import { ensureEmailAvailable } from "@/lib/signup/account";
 import type { ActionResult } from "@/lib/actions/courses";
 
 // Self-registration for the two profiles that can create their own account
@@ -94,17 +95,16 @@ export async function registerStudent(formData: FormData): Promise<ActionResult>
   const school = await requireActiveSchool(admin, f.organizationId);
   if (!school.ok) return school;
 
+  const emailCheck = await ensureEmailAvailable(admin, f.email);
+  if (!emailCheck.ok) return { ok: false, error: emailCheck.error };
+
   const { data: created, error: createUserError } = await admin.auth.admin.createUser({
     email: f.email,
     password: f.password,
     email_confirm: true,
   });
   if (createUserError || !created.user) {
-    const message = createUserError?.message ?? "";
-    if (message.toLowerCase().includes("already been registered") || message.toLowerCase().includes("already registered")) {
-      return { ok: false, error: "Un compte existe déjà avec cet email. Connectez-vous plutôt." };
-    }
-    return { ok: false, error: `Compte non créé : ${message}` };
+    return { ok: false, error: `Compte non créé : ${createUserError?.message ?? "erreur inconnue"}` };
   }
 
   const { error: profileError } = await admin.from("profiles").insert({
@@ -167,17 +167,16 @@ export async function applyAsInstructor(formData: FormData): Promise<ActionResul
   const school = await requireActiveSchool(admin, f.organizationId);
   if (!school.ok) return school;
 
+  const emailCheck = await ensureEmailAvailable(admin, f.email);
+  if (!emailCheck.ok) return { ok: false, error: emailCheck.error };
+
   const { data: created, error: createUserError } = await admin.auth.admin.createUser({
     email: f.email,
     password: f.password,
     email_confirm: true,
   });
   if (createUserError || !created.user) {
-    const message = createUserError?.message ?? "";
-    if (message.toLowerCase().includes("already been registered") || message.toLowerCase().includes("already registered")) {
-      return { ok: false, error: "Un compte existe déjà avec cet email. Connectez-vous plutôt." };
-    }
-    return { ok: false, error: `Compte non créé : ${message}` };
+    return { ok: false, error: `Compte non créé : ${createUserError?.message ?? "erreur inconnue"}` };
   }
 
   // status='pending' is the whole point of this flow: an instructor account

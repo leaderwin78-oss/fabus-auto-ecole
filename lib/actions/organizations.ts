@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import { recordReferralJoin } from "@/lib/actions/referrals";
+import { ensureEmailAvailable } from "@/lib/signup/account";
 import type { ActionResult } from "@/lib/actions/courses";
 
 function slugify(name: string) {
@@ -171,6 +172,14 @@ export async function applyAsSchool(formData: FormData): Promise<ActionResult> {
   }
 
   const admin = createAdminClient();
+
+  // Check the address BEFORE inserting the organization. This used to run
+  // after, so a taken email left a pending auto-école behind with no admin
+  // account attached — invisible to the applicant, but sitting in the super
+  // admin's approval queue, and repeated once per retry.
+  const emailCheck = await ensureEmailAvailable(admin, email);
+  if (!emailCheck.ok) return { ok: false, error: emailCheck.error };
+
   const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
 
   const { data: org, error: orgError } = await admin
@@ -204,7 +213,10 @@ export async function applyAsSchool(formData: FormData): Promise<ActionResult> {
     email_confirm: true,
   });
   if (createUserError || !created.user) {
-    return { ok: false, error: `Demande enregistrée mais compte non créé : ${createUserError?.message}. Contactez le support.` };
+    // Undo the organization: a school with no way to sign in is not a
+    // "registered request", it is a row nobody can ever claim.
+    await admin.from("organizations").delete().eq("id", org.id);
+    return { ok: false, error: `Compte non créé : ${createUserError?.message ?? "erreur inconnue"}` };
   }
 
   const { error: profileError } = await admin.from("profiles").insert({
@@ -214,7 +226,11 @@ export async function applyAsSchool(formData: FormData): Promise<ActionResult> {
     full_name: responsableName,
     phone: phone || null,
   });
-  if (profileError) return { ok: false, error: `Demande enregistrée mais profil non créé : ${profileError.message}.` };
+  if (profileError) {
+    await admin.auth.admin.deleteUser(created.user.id);
+    await admin.from("organizations").delete().eq("id", org.id);
+    return { ok: false, error: `Inscription non finalisée : ${profileError.message}` };
+  }
 
   const refCode = String(formData.get("ref_code") ?? "").trim();
   if (refCode) await recordReferralJoin(refCode, created.user.id);
