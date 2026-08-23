@@ -525,6 +525,37 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
 }
 
 /* ==========================================================================
+   Photographies
+   ========================================================================== */
+/* Full-bleed photo band with a legible caption over it. The gradient is what
+   guarantees contrast for the text — never rely on the photo being dark. */
+.photo-band { position: relative; width: 100%; height: 380px; overflow: hidden; }
+.photo-band-overlay {
+  position: absolute; inset: 0; display: flex; align-items: flex-end;
+  padding-bottom: 2.5rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.45) 45%, rgba(0, 0, 0, 0.12) 100%);
+}
+@media (max-width: 700px) { .photo-band { height: 300px; } }
+
+/* Photo introducing a section: wide, shallow, rounded. */
+.section-photo {
+  width: 100%; max-width: 900px; height: 220px; margin: 0 auto 2rem;
+  border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-tertiary);
+}
+@media (max-width: 700px) { .section-photo { height: 160px; } }
+
+/* Narrow strip used at the top of the signup chooser. */
+.photo-strip {
+  position: relative; width: 100%; height: 150px; border-radius: var(--radius-lg);
+  overflow: hidden; margin-bottom: 2rem; background: var(--bg-tertiary);
+}
+.photo-strip::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+}
+@media (max-width: 700px) { .photo-strip { height: 110px; } }
+
+/* ==========================================================================
    Illustrations
    ========================================================================== */
 .illus { width: 100%; max-width: 400px; height: auto; display: block; }

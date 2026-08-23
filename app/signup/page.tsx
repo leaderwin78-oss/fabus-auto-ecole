@@ -1,5 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { AuthShell } from "@/components/AuthShell";
+import { PHOTOS } from "@/lib/photos";
 import {
   SignupStudentIllustration,
   SignupSchoolIllustration,
@@ -60,6 +62,16 @@ export default async function SignupRolePage({
       }
     >
       <div style={{ width: "100%", maxWidth: 980 }}>
+        <div className="photo-strip">
+          <Image
+            src={`/images/${PHOTOS.dakarCorniche.file}.webp`}
+            alt={PHOTOS.dakarCorniche.alt}
+            fill
+            sizes="(max-width: 1000px) 100vw, 980px"
+            style={{ objectFit: "cover" }}
+            priority
+          />
+        </div>
         <div className="text-center mb-8">
           <h1 className="auth-title" style={{ fontSize: "2rem" }}>
             Créer un compte

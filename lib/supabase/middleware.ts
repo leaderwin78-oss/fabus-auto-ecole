@@ -19,7 +19,7 @@ const ROLES_BY_AREA: Record<string, string[]> = {
   "/student": ["student"],
 };
 
-const PUBLIC_PATHS = ["/", "/login", "/auth/callback", "/annonces", "/confidentialite", "/conditions"];
+const PUBLIC_PATHS = ["/", "/login", "/auth/callback", "/annonces", "/confidentialite", "/conditions", "/credits"];
 const PUBLIC_PREFIXES = ["/signup"];
 
 function isPublicPath(pathname: string) {
