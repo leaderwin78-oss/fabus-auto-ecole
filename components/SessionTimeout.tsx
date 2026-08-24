@@ -6,10 +6,12 @@ import { useEffect, useRef, useState } from "react";
 //
 // La durée est ici, en un seul endroit, parce que c'est un arbitrage et pas une
 // constante technique : trop courte, elle déconnecte un élève en train de lire
-// une leçon ou de remplir un formulaire ; trop longue, elle laisse une session
-// ouverte sur un téléphone posé sur une table. 2 minutes est la valeur
-// demandée — voir le README pour la remonter.
-export const DELAI_INACTIVITE_MS = 2 * 60 * 1000;
+// une leçon ou de remplir son inscription ; trop longue, elle laisse une
+// session ouverte sur un téléphone posé sur une table. 15 minutes est la
+// valeur usuelle des services bancaires en ligne — assez court pour protéger
+// un appareil laissé sans surveillance, assez long pour ne jamais couper
+// quelqu'un au milieu d'une tâche.
+export const DELAI_INACTIVITE_MS = 15 * 60 * 1000;
 const PREAVIS_MS = 30 * 1000;
 
 // Ce qui compte comme activité. Le défilement et la frappe en font partie :
