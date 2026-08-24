@@ -1,7 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
-import { PHOTOS } from "@/lib/photos";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SchoolPicker } from "./SchoolPicker";
 import { PageBackground, FONDS } from "@/components/PageBackground";
@@ -92,29 +90,6 @@ export default async function LandingPage() {
 
       </section>
 
-      {/* A real Dakar street: the traffic our students actually learn to drive in. */}
-      <section className="photo-band">
-        <Image
-          src={`/images/${PHOTOS.dakarTraffic.file}.webp`}
-          alt={PHOTOS.dakarTraffic.alt}
-          fill
-          sizes="100vw"
-          priority
-          style={{ objectFit: "cover" }}
-        />
-        <div className="photo-band-overlay">
-          <div className="container">
-            <h2 className="section-heading" style={{ color: "#fff", marginBottom: "0.5rem" }}>
-              Apprendre à conduire ici, vraiment
-            </h2>
-            <p style={{ color: "rgba(255,255,255,0.92)", maxWidth: 560, marginBottom: 0 }}>
-              Cars rapides, taxis, carrefours chargés : nos formations préparent à la circulation réelle de Dakar et
-              des grandes villes du Sénégal.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <section id="methode" className="section container">
         <div className="text-center mb-8">
           <h2 className="section-heading">Pourquoi L&apos;Auto École ?</h2>
@@ -137,16 +112,6 @@ export default async function LandingPage() {
       <section id="ecoles" className="section" style={{ backgroundColor: "var(--bg-secondary)" }}>
         <div className="container">
           <div className="text-center mb-8">
-            <div className="section-photo">
-              <Image
-                src={`/images/${PHOTOS.dakarStation.file}.webp`}
-                alt={PHOTOS.dakarStation.alt}
-                width={1600}
-                height={1200}
-                sizes="(max-width: 900px) 100vw, 900px"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
             <h2 className="section-heading">Auto-écoles partenaires</h2>
             <p className="text-muted-color">Choisissez votre auto-école pour commencer votre inscription.</p>
           </div>
@@ -313,7 +278,6 @@ export default async function LandingPage() {
               <ul className="text-sm" style={{ display: "flex", flexDirection: "column", gap: "0.625rem", color: "var(--text-secondary)" }}>
                 <li><Link href="/conditions">Conditions générales</Link></li>
                 <li><Link href="/confidentialite">Confidentialité</Link></li>
-                <li><Link href="/credits">Crédits photo</Link></li>
                 <li>Dakar, Sénégal</li>
               </ul>
             </div>
