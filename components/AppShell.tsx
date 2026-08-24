@@ -2,6 +2,7 @@ import { Sidebar, type NavItem } from "@/components/Sidebar";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PageBackground, FONDS } from "@/components/PageBackground";
+import { SessionTimeout } from "@/components/SessionTimeout";
 import type { Profile } from "@/types/database";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -19,6 +20,7 @@ export function AppShell({
   title,
   subtitle,
   children,
+  videoEnCours = false,
 }: {
   profile: Profile;
   userId: string;
@@ -26,6 +28,8 @@ export function AppShell({
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  /** Suspend l'expiration de session pendant un cours en visioconférence. */
+  videoEnCours?: boolean;
 }) {
   const initial = profile.full_name?.charAt(0)?.toUpperCase() || "?";
 
@@ -34,6 +38,8 @@ export function AppShell({
       {/* Fond très atténué : sur un espace de travail, l'image doit se sentir
           plutôt que se voir — les tableaux et les boutons passent devant. */}
       <PageBackground image={FONDS.calme} discret />
+      {/* Minuteur d'inactivité, suspendu pendant un cours en visioconférence. */}
+      <SessionTimeout actif={!videoEnCours} />
       <Sidebar items={navItems} />
       <main className="main-content">
         <header className="topbar animate-fade-up">

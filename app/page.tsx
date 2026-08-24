@@ -166,19 +166,33 @@ export default async function LandingPage() {
               <Link href="/signup/auto-ecole" className="btn btn-primary">Inscrire mon auto-école</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-3">
-              {schools.map((school) => (
-                <Link key={school.id} href={`/signup/eleve?school=${school.id}`} className="school-tile">
-                  <span className="badge" style={{ alignSelf: "flex-start", marginBottom: "0.5rem" }}>
-                    {school.city ?? "Sénégal"}
-                  </span>
-                  <h3 style={{ fontSize: "1.0625rem", marginBottom: "0.25rem" }}>{school.name}</h3>
-                  <span className="text-sm" style={{ color: "var(--accent-text)", fontWeight: 500 }}>
-                    Rejoindre cette auto-école <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i>
-                  </span>
+            <>
+              {/* Le détail des auto-écoles est réservé aux comptes : on montre
+                  qu'elles existent et où, mais consulter et rejoindre passe par
+                  une inscription. */}
+              <div className="grid grid-cols-3">
+                {schools.map((school) => (
+                  <Link key={school.id} href="/signup/eleve" className="school-tile school-tile-verrouille">
+                    <span className="badge" style={{ alignSelf: "flex-start", marginBottom: "0.5rem" }}>
+                      {school.city ?? "Sénégal"}
+                    </span>
+                    <h3 style={{ fontSize: "1.0625rem", marginBottom: "0.25rem" }}>{school.name}</h3>
+                    <span className="text-sm" style={{ color: "var(--accent-text)", fontWeight: 500 }}>
+                      <i className="fa-solid fa-lock" style={{ fontSize: "0.75rem" }}></i> Créez un compte pour consulter
+                    </span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="text-center mt-8">
+                <p className="text-sm text-muted-color mb-4">
+                  Les fiches détaillées — tarifs, services, véhicules, moniteurs — sont réservées aux membres.
+                </p>
+                <Link href="/signup/eleve" className="btn btn-primary btn-lg btn-pulse btn-shine">
+                  Créer mon compte pour consulter les auto-écoles
                 </Link>
-              ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
       </section>

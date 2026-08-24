@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import { computeCommission, type PaymentType } from "@/lib/payments/commission";
@@ -63,7 +64,7 @@ export async function markPaymentPaid(paymentId: string): Promise<ActionResult> 
 
   // Commission/fee breakdown is computed here — server-side, at the moment
   // of settlement — and never trusted from the client (section 8).
-  const breakdown = await computeCommission(supabase, pending.payment_type, pending.amount_fcfa);
+  const breakdown = await computeCommission(supabase, pending.payment_type, pending.amount_fcfa, pending.student_id);
 
   const { data: payment, error } = await supabase
     .from("payments")
@@ -72,6 +73,8 @@ export async function markPaymentPaid(paymentId: string): Promise<ActionResult> 
       paid_at: new Date().toISOString(),
       gross_amount_fcfa: breakdown.grossAmountFcfa,
       platform_commission_fcfa: breakdown.platformCommissionFcfa,
+      referral_amount_fcfa: breakdown.referralAmountFcfa,
+      referrer_id: breakdown.referrerId,
       seller_amount_fcfa: breakdown.sellerAmountFcfa,
     })
     .eq("id", paymentId)
@@ -79,6 +82,41 @@ export async function markPaymentPaid(paymentId: string): Promise<ActionResult> 
     .single();
 
   if (error) return { ok: false, error: erreurInterne(error, "payments") };
+
+  // Gain de parrainage : écrit avec la clé service_role, car un élève n'a
+  // aucun droit d'écriture sur cette table — c'est ce qui l'empêche de se
+  // créditer lui-même. La contrainte d'unicité sur payment_id fait que
+  // re-marquer un paiement « payé » ne crédite jamais deux fois.
+  if (breakdown.referrerId && breakdown.referralAmountFcfa > 0) {
+    const admin = createAdminClient();
+    const { data: referral } = await admin
+      .from("referrals")
+      .select("id")
+      .eq("invited_user_id", payment.student_id)
+      .eq("status", "joined")
+      .limit(1)
+      .maybeSingle();
+
+    await admin.from("referral_earnings").insert({
+      referrer_id: breakdown.referrerId,
+      referral_id: referral?.id ?? null,
+      invited_user_id: payment.student_id,
+      payment_id: payment.id,
+      organization_id: payment.organization_id,
+      amount_fcfa: breakdown.referralAmountFcfa,
+      rate_percent: breakdown.referralRatePercent,
+      base_amount_fcfa: breakdown.grossAmountFcfa,
+    });
+
+    await admin.from("notifications").insert({
+      organization_id: payment.organization_id,
+      user_id: breakdown.referrerId,
+      type: "referral_earning",
+      title: "Vous avez gagné une prime de parrainage",
+      body: `${breakdown.referralAmountFcfa.toLocaleString("fr-FR")} F CFA vous ont été crédités : la personne que vous avez parrainée vient de régler son inscription.`,
+      link: "/account",
+    });
+  }
 
   // Every successful payment gets a real invoice (section 14: "reçu, facture").
   // The number is randomized rather than sequential to avoid a race between

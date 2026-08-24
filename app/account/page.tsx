@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { ProfileForm } from "./ProfileForm";
 import { PasswordForm } from "./PasswordForm";
 import { AvatarUpload } from "./AvatarUpload";
@@ -15,8 +17,41 @@ const ROLE_HOME: Record<string, string> = {
   student: "/student",
 };
 
+// Une ligne de gain : on affiche la base et le taux, pas seulement le montant.
+// Quelqu'un qui touche de l'argent doit pouvoir refaire le calcul lui-même.
+function ReferralEarningRow({
+  date, base, taux, montant, statut,
+}: { date: string; base: number; taux: number; montant: number; statut: string }) {
+  return (
+    <div className="review-row">
+      <dt>
+        {date} — {base.toLocaleString("fr-FR")} F × {taux} %
+        {statut === "verse" && <span className="badge ml-2" style={{ marginLeft: 8 }}>versé</span>}
+      </dt>
+      <dd style={{ color: "var(--accent-text)" }}>+{montant.toLocaleString("fr-FR")} F</dd>
+    </div>
+  );
+}
+
 export default async function AccountPage() {
-  const { profile } = await requireProfile();
+  const { userId, profile } = await requireProfile();
+  const supabase = await createClient();
+
+  const [{ data: gainsData }, { data: reglages }] = await Promise.all([
+    supabase
+      .from("referral_earnings")
+      .select("id, amount_fcfa, base_amount_fcfa, rate_percent, status, created_at")
+      .eq("referrer_id", userId)
+      .order("created_at", { ascending: false }),
+    // Le taux affiché vient de la même source que le calcul, jamais d'une
+    // constante recopiée : sinon l'affichage et la réalité divergent le jour
+    // où le super admin change le taux.
+    createAdminClient().from("platform_settings").select("referral_commission_percent").eq("id", true).single(),
+  ]);
+
+  const gains = gainsData ?? [];
+  const totalGains = gains.reduce((somme, g) => somme + g.amount_fcfa, 0);
+  const tauxParrainage = Number(reglages?.referral_commission_percent ?? 10);
 
   return (
     <main className="section container" style={{ maxWidth: 700 }}>
@@ -42,7 +77,40 @@ export default async function AccountPage() {
         </div>
 
         <div className="card">
-          <h4 className="mb-4">Inviter un ami</h4>
+          <h4 className="mb-2">Parrainage</h4>
+          <p className="text-sm text-muted-color mb-4">
+            Vous touchez <strong>{tauxParrainage} %</strong> du montant de l&apos;inscription de chaque personne que
+            vous parrainez, dès qu&apos;elle règle son inscription.
+          </p>
+
+          <div className="grid grid-cols-2 mb-4" style={{ gap: "0.75rem" }}>
+            <div className="card-flat" style={{ background: "var(--bg-secondary)", borderRadius: "var(--radius-md)" }}>
+              <div className="stat-value" style={{ fontSize: "1.5rem", color: "var(--accent-text)" }}>
+                {totalGains.toLocaleString("fr-FR")} F
+              </div>
+              <div className="stat-label">Gains acquis</div>
+            </div>
+            <div className="card-flat" style={{ background: "var(--bg-secondary)", borderRadius: "var(--radius-md)" }}>
+              <div className="stat-value" style={{ fontSize: "1.5rem" }}>{gains.length}</div>
+              <div className="stat-label">Filleul(s) ayant payé</div>
+            </div>
+          </div>
+
+          {gains.length > 0 && (
+            <dl className="review-list">
+              {gains.slice(0, 5).map((g) => (
+                <ReferralEarningRow
+                  key={g.id}
+                  date={new Date(g.created_at).toLocaleDateString("fr-FR")}
+                  base={g.base_amount_fcfa}
+                  taux={Number(g.rate_percent)}
+                  montant={g.amount_fcfa}
+                  statut={g.status}
+                />
+              ))}
+            </dl>
+          )}
+
           <ReferralWidget />
         </div>
 

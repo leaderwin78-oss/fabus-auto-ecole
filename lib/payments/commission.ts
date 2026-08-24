@@ -6,6 +6,12 @@ export type PaymentType = "registration" | "course" | "extra_service" | "subscri
 export interface CommissionBreakdown {
   grossAmountFcfa: number;
   platformCommissionFcfa: number;
+  /** Part reversée au parrain de l'élève, 0 s'il n'y en a pas. */
+  referralAmountFcfa: number;
+  referralRatePercent: number;
+  /** Identifiant du parrain, null s'il n'y en a pas. */
+  referrerId: string | null;
+  /** Ce qui revient réellement à l'auto-école, une fois tout déduit. */
   sellerAmountFcfa: number;
   ratePercent: number;
 }
@@ -19,7 +25,9 @@ export async function computeCommission(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _supabase: SupabaseClient<any>,
   paymentType: PaymentType,
-  grossAmountFcfa: number
+  grossAmountFcfa: number,
+  /** Élève concerné : sert à retrouver son parrain sur une inscription. */
+  studentId?: string
 ): Promise<CommissionBreakdown> {
   // platform_settings n'est lisible que par le super admin (0011) : les taux de
   // commission sont les conditions commerciales de la plateforme, elles n'ont
@@ -45,10 +53,37 @@ export async function computeCommission(
       : 0;
 
   const platformCommissionFcfa = Math.round((grossAmountFcfa * rate) / 100);
+
+  // Parrainage : uniquement sur l'inscription, et uniquement si l'élève a été
+  // amené par quelqu'un. La part sort de celle de l'auto-école — voir le
+  // commentaire de 0012_parrainage_remunere.sql pour la répartition complète.
+  let referrerId: string | null = null;
+  let referralAmountFcfa = 0;
+  const referralRate = Number(settings.referral_commission_percent ?? 10);
+
+  if (paymentType === "registration" && studentId && referralRate > 0) {
+    const { data: referral } = await admin
+      .from("referrals")
+      .select("inviter_id")
+      .eq("invited_user_id", studentId)
+      .eq("status", "joined")
+      .limit(1)
+      .maybeSingle();
+
+    // Un parrain ne peut pas se parrainer lui-même.
+    if (referral?.inviter_id && referral.inviter_id !== studentId) {
+      referrerId = referral.inviter_id;
+      referralAmountFcfa = Math.round((grossAmountFcfa * referralRate) / 100);
+    }
+  }
+
   return {
     grossAmountFcfa,
     platformCommissionFcfa,
-    sellerAmountFcfa: grossAmountFcfa - platformCommissionFcfa,
+    referralAmountFcfa,
+    referralRatePercent: referralRate,
+    referrerId,
+    sellerAmountFcfa: grossAmountFcfa - platformCommissionFcfa - referralAmountFcfa,
     ratePercent: rate,
   };
 }

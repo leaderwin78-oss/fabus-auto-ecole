@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 // Presentation pieces shared by the three signup wizards. Each step shows one
 // question at a time with a large heading, a short helper line and a single
 // primary action — the pattern Facebook's mobile signup uses, adapted to the
@@ -43,6 +45,7 @@ export function WizardNav({
   onNext,
   onSubmit,
   nextDisabled,
+  backHref = "/signup",
 }: {
   step: number;
   isLast: boolean;
@@ -52,12 +55,23 @@ export function WizardNav({
   onNext: () => void;
   onSubmit: () => void;
   nextDisabled?: boolean;
+  /** Où mène le retour depuis la première étape (par défaut le choix de profil). */
+  backHref?: string;
 }) {
   return (
     <div className="wizard-nav">
-      <button type="button" className="wizard-back" onClick={onBack} disabled={step === 0 || submitting}>
-        <i className="fa-solid fa-arrow-left"></i> Retour
-      </button>
+      {/* À la première étape le retour ne doit pas disparaître : il ramène au
+          choix de profil. Un bouton mort à cet endroit donne l'impression
+          d'être piégé dans le formulaire. */}
+      {step === 0 ? (
+        <Link href={backHref} className="wizard-back">
+          <i className="fa-solid fa-arrow-left"></i> Retour
+        </Link>
+      ) : (
+        <button type="button" className="wizard-back" onClick={onBack} disabled={submitting}>
+          <i className="fa-solid fa-arrow-left"></i> Retour
+        </button>
+      )}
       {isLast ? (
         <button type="button" className="btn btn-primary btn-lg btn-pulse btn-shine" onClick={onSubmit} disabled={submitting || nextDisabled}>
           {submitting ? "Envoi..." : submitLabel}

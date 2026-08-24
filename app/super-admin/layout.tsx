@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { requireProfile } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { coursVideoEnCours } from "@/lib/data/session";
 import type { NavItem } from "@/components/Sidebar";
 
 const NAV_ITEMS: NavItem[] = [
@@ -20,12 +22,13 @@ const NAV_ITEMS: NavItem[] = [
 
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const { userId, profile } = await requireProfile();
+  const videoEnCours = await coursVideoEnCours(await createClient(), userId);
   // Defense in depth alongside middleware.ts's role-area gate — every
   // page under this layout inherits the check from here.
   if (profile.role !== "super_admin") redirect("/login");
 
   return (
-    <AppShell profile={profile} userId={userId} navItems={NAV_ITEMS} title="Super Admin — L'Auto École">
+    <AppShell videoEnCours={videoEnCours} profile={profile} userId={userId} navItems={NAV_ITEMS} title="Super Admin — L'Auto École">
       {children}
     </AppShell>
   );
