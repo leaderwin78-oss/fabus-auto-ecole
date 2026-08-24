@@ -64,6 +64,23 @@ export function urlExterneOuNull(raw: string): string | null | undefined {
 export const TYPES_IMAGE = ["image/jpeg", "image/png", "image/webp"];
 export const TYPES_DOCUMENT = [...TYPES_IMAGE, "application/pdf"];
 
+/** Médias autorisés dans la communauté. Doit rester aligné sur
+ *  allowed_mime_types du bucket post-media (0013) : si les deux listes
+ *  divergent, l'envoi passe le contrôle applicatif puis échoue au stockage. */
+export const TYPES_MEDIA_POST = [
+  "image/jpeg", "image/png", "image/webp", "image/gif",
+  "video/mp4", "video/webm", "video/quicktime",
+];
+
+const EXTENSIONS_MEDIA: Record<string, string> = {
+  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif",
+  "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov",
+};
+
+export function extensionMedia(mime: string): string {
+  return EXTENSIONS_MEDIA[mime] ?? "bin";
+}
+
 const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",

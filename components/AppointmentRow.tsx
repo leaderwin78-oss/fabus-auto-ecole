@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateAppointmentStatus, addSessionNote } from "@/lib/actions/appointments";
@@ -89,9 +91,9 @@ export function AppointmentRow({
       </div>
 
       {appointment.type === "video_course" && appointment.meeting_url && (
-        <a href={appointment.meeting_url} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm mt-2">
+        <Link href={`/cours/${appointment.id}`} className="btn btn-primary btn-sm mt-2 btn-shine">
           <i className="fa-solid fa-video"></i> Rejoindre
-        </a>
+        </Link>
       )}
 
       {canEdit && appointment.status !== "canceled" && appointment.status !== "completed" && (

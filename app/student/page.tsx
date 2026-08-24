@@ -60,9 +60,9 @@ export default async function StudentDashboardPage() {
                 )}
               </div>
               {nextAppointment.type === "video_course" && nextAppointment.meeting_url ? (
-                <a href={nextAppointment.meeting_url} target="_blank" rel="noreferrer" className="btn" style={{ background: "white", color: "var(--fabus-green-dark)" }}>
+                <Link href={`/cours/${nextAppointment.id}`} className="btn btn-pulse" style={{ background: "white", color: "var(--fabus-green-dark)" }}>
                   <i className="fa-solid fa-video"></i> Rejoindre la classe
-                </a>
+                </Link>
               ) : (
                 <Link href="/student/calendar" className="btn" style={{ background: "white", color: "var(--fabus-green-dark)" }}>
                   <i className="fa-solid fa-calendar"></i> Voir le calendrier

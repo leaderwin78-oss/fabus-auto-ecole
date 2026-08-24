@@ -8,11 +8,33 @@ export default async function CommunityPage() {
   const { userId } = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: posts }, { data: likes }, { data: comments }] = await Promise.all([
+  const [{ data: posts }, { data: likes }, { data: comments }, { data: medias }] = await Promise.all([
     supabase.from("posts").select("*, author:author_id(full_name, avatar_url, role)").eq("status", "published").order("created_at", { ascending: false }).limit(50),
     supabase.from("post_likes").select("post_id, user_id"),
     supabase.from("post_comments").select("*, author:author_id(full_name, avatar_url)").order("created_at", { ascending: true }),
+    supabase.from("post_media").select("post_id, path, kind, position").order("position"),
   ]);
+
+  // Le bucket est privé : chaque fichier est servi par une URL signée, générée
+  // ici pour une heure. C'est ce qui permet d'avoir des médias dans un espace
+  // réservé aux membres sans rouvrir le stockage à tout internet.
+  const cheminsMedias = (medias ?? []).map((m) => m.path);
+  const urlsSignees = new Map<string, string>();
+  if (cheminsMedias.length > 0) {
+    const { data: signees } = await supabase.storage.from("post-media").createSignedUrls(cheminsMedias, 3600);
+    for (const s of signees ?? []) {
+      if (s.signedUrl && s.path) urlsSignees.set(s.path, s.signedUrl);
+    }
+  }
+
+  const mediasByPost = new Map<string, { url: string; kind: "image" | "video" }[]>();
+  for (const m of medias ?? []) {
+    const url = urlsSignees.get(m.path);
+    if (!url) continue;
+    const arr = mediasByPost.get(m.post_id) ?? [];
+    arr.push({ url, kind: m.kind as "image" | "video" });
+    mediasByPost.set(m.post_id, arr);
+  }
 
   const likesByPost = new Map<string, string[]>();
   for (const l of likes ?? []) {
@@ -48,6 +70,7 @@ export default async function CommunityPage() {
               <PostCard
                 key={p.id}
                 post={{ id: p.id, body: p.body, created_at: p.created_at, author_name: author?.full_name ?? "Utilisateur", author_avatar: author?.avatar_url ?? null }}
+                medias={mediasByPost.get(p.id) ?? []}
                 likeCount={(likesByPost.get(p.id) ?? []).length}
                 likedByMe={(likesByPost.get(p.id) ?? []).includes(userId)}
                 comments={(commentsByPost.get(p.id) ?? []).map((c) => {

@@ -19,16 +19,23 @@ interface PostData {
   author_avatar: string | null;
 }
 
+export interface Media {
+  url: string;
+  kind: "image" | "video";
+}
+
 export function PostCard({
   post,
   likeCount,
   likedByMe,
   comments,
+  medias = [],
 }: {
   post: PostData;
   likeCount: number;
   likedByMe: boolean;
   comments: Comment[];
+  medias?: Media[];
 }) {
   const router = useRouter();
   const [showComments, setShowComments] = useState(false);
@@ -82,7 +89,22 @@ export function PostCard({
         </div>
       </div>
 
-      <p className="mb-4" style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>
+      {post.body && <p className="mb-4" style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>}
+
+      {medias.length > 0 && (
+        <div className={`post-medias post-medias-${Math.min(medias.length, 4)}`}>
+          {medias.map((m, i) =>
+            m.kind === "video" ? (
+              // controls plutôt qu'autoplay : une vidéo qui démarre seule dans
+              // un fil consomme la donnée mobile de tout le monde.
+              <video key={m.url} src={m.url} controls preload="metadata" playsInline />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- URL signée temporaire, hors du domaine optimisable par next/image
+              <img key={m.url} src={m.url} alt={`Média ${i + 1} de la publication de ${post.author_name}`} loading="lazy" />
+            )
+          )}
+        </div>
+      )}
 
       <div className="flex items-center gap-4" style={{ borderTop: "1px solid var(--border-color)", paddingTop: "0.75rem" }}>
         <button className="btn btn-secondary btn-sm" disabled={isPending} onClick={like}>

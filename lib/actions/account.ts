@@ -50,6 +50,54 @@ export async function updateOwnAvatar(formData: FormData): Promise<ActionResult>
   return { ok: true };
 }
 
+export async function updateOwnCover(formData: FormData): Promise<ActionResult> {
+  const { userId } = await requireProfile();
+  const file = formData.get("file") as File | null;
+
+  // Plus permissif que l'avatar en taille : une couverture est large, donc
+  // lourde. Mêmes types autorisés — bucket public, pas de SVG ni de HTML.
+  const verdict = fichierValide(file as File, TYPES_IMAGE, 6 * 1024 * 1024);
+  if (!verdict.ok) return { ok: false, error: verdict.error };
+
+  const supabase = await createClient();
+  const path = `${userId}/couverture-${Date.now()}.${verdict.extension}`;
+  const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file as File, {
+    contentType: (file as File).type,
+    upsert: true,
+  });
+  if (uploadError) return { ok: false, error: erreurInterne(uploadError, "account") };
+
+  const { data: publicUrl } = supabase.storage.from("avatars").getPublicUrl(path);
+  const { error } = await supabase.from("profiles").update({ cover_url: publicUrl.publicUrl }).eq("id", userId);
+  if (error) return { ok: false, error: erreurInterne(error, "account") };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Clés acceptées pour le fond personnel — voir FONDS dans PageBackground. */
+const FONDS_AUTORISES = [
+  "route-panneaux", "salle-eleves", "salle-formation",
+  "ville-auto-ecole", "moniteur-voiture", "salle-calme",
+];
+
+export async function updateOwnBackground(cle: string): Promise<ActionResult> {
+  const { userId } = await requireProfile();
+
+  // Chaîne vide = revenir au fond de la plateforme. Toute autre valeur doit
+  // figurer dans le catalogue : sinon on stockerait une clé qui ne
+  // correspondra à aucune image.
+  const valeur = cle && FONDS_AUTORISES.includes(cle) ? cle : null;
+  if (cle && !valeur) return { ok: false, error: "Fond inconnu." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ background_key: valeur }).eq("id", userId);
+  if (error) return { ok: false, error: erreurInterne(error, "account") };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 const SOCIAL_PLATFORMS = ["facebook", "instagram", "twitter", "tiktok", "youtube", "linkedin"] as const;
 
 export async function updateSocialLinks(formData: FormData): Promise<ActionResult> {

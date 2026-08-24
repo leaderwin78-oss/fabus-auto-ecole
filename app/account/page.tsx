@@ -8,6 +8,8 @@ import { AvatarUpload } from "./AvatarUpload";
 import { TwoFactorSection } from "./TwoFactorSection";
 import { SocialLinksForm } from "./SocialLinksForm";
 import { ReferralWidget } from "./ReferralWidget";
+import { CoverUpload } from "./CoverUpload";
+import { BackgroundPicker } from "./BackgroundPicker";
 
 const ROLE_HOME: Record<string, string> = {
   super_admin: "/super-admin",
@@ -62,8 +64,18 @@ export default async function AccountPage() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         <div className="card">
+          <h4 className="mb-4">Photo de couverture</h4>
+          <CoverUpload coverUrl={profile.cover_url} />
+        </div>
+
+        <div className="card">
           <h4 className="mb-4">Photo de profil</h4>
           <AvatarUpload avatarUrl={profile.avatar_url} fullName={profile.full_name} />
+        </div>
+
+        <div className="card">
+          <h4 className="mb-4">Mon fond d&apos;écran</h4>
+          <BackgroundPicker actuel={profile.background_key} />
         </div>
 
         <div className="card">

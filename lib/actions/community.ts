@@ -6,15 +6,72 @@ import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/audit";
 import type { ActionResult } from "@/lib/actions/courses";
 import { erreurInterne } from "@/lib/actions/errors";
+import { TYPES_MEDIA_POST, extensionMedia } from "@/lib/validation";
+
+const MEDIAS_MAX = 4;
+const TAILLE_MAX_MEDIA = 50 * 1024 * 1024; // 50 Mo, aligné sur la limite du bucket
 
 export async function createPost(formData: FormData): Promise<ActionResult> {
   const { userId } = await requireProfile();
   const body = String(formData.get("body") ?? "").trim();
-  if (!body) return { ok: false, error: "Écrivez quelque chose avant de publier." };
+  const fichiers = formData.getAll("media").filter((f): f is File => f instanceof File && f.size > 0);
+
+  // Une publication doit porter quelque chose : du texte, une image ou une vidéo.
+  if (!body && fichiers.length === 0) {
+    return { ok: false, error: "Écrivez quelque chose ou ajoutez une photo avant de publier." };
+  }
+  if (fichiers.length > MEDIAS_MAX) {
+    return { ok: false, error: `Maximum ${MEDIAS_MAX} fichiers par publication.` };
+  }
+
+  // Types vérifiés côté serveur : le type déclaré par le navigateur se falsifie,
+  // et le bucket applique la même liste — les deux doivent concorder.
+  for (const f of fichiers) {
+    if (!TYPES_MEDIA_POST.includes(f.type)) {
+      return { ok: false, error: "Formats acceptés : JPEG, PNG, WebP, GIF, MP4, WebM, MOV." };
+    }
+    if (f.size > TAILLE_MAX_MEDIA) {
+      return { ok: false, error: `« ${f.name} » dépasse 50 Mo.` };
+    }
+  }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("posts").insert({ author_id: userId, body });
-  if (error) return { ok: false, error: erreurInterne(error, "community") };
+  const { data: post, error } = await supabase
+    .from("posts")
+    .insert({ author_id: userId, body: body || null })
+    .select("id")
+    .single();
+  if (error || !post) return { ok: false, error: erreurInterne(error, "community") };
+
+  // Le préfixe du chemin est l'identifiant de l'auteur : c'est ce que la policy
+  // du bucket vérifie pour interdire d'écrire dans le dossier d'autrui.
+  const envoyes: string[] = [];
+  for (const [index, fichier] of fichiers.entries()) {
+    const ext = extensionMedia(fichier.type);
+    const chemin = `${userId}/${post.id}/${Date.now()}-${index}.${ext}`;
+
+    const { error: envoiErr } = await supabase.storage
+      .from("post-media")
+      .upload(chemin, fichier, { contentType: fichier.type });
+
+    if (envoiErr) {
+      // On ne laisse pas une publication à moitié illustrée : on annule tout.
+      for (const c of envoyes) await supabase.storage.from("post-media").remove([c]);
+      await supabase.from("posts").delete().eq("id", post.id);
+      return { ok: false, error: `Envoi de « ${fichier.name} » impossible : ${envoiErr.message}` };
+    }
+    envoyes.push(chemin);
+
+    await supabase.from("post_media").insert({
+      post_id: post.id,
+      author_id: userId,
+      path: chemin,
+      kind: fichier.type.startsWith("video/") ? "video" : "image",
+      mime_type: fichier.type,
+      size_bytes: fichier.size,
+      position: index,
+    });
+  }
 
   revalidatePath("/communaute");
   return { ok: true };

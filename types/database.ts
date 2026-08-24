@@ -55,6 +55,8 @@ export interface Profile {
   must_change_password: boolean;
   social_links: Record<string, string>;
   social_links_public: boolean;
+  cover_url: string | null;
+  background_key: string | null;
   status: ProfileStatus;
   rejection_reason: string | null;
   birth_date: string | null;

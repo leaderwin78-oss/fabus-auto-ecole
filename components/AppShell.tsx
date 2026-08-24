@@ -1,7 +1,7 @@
 import { Sidebar, type NavItem } from "@/components/Sidebar";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { PageBackground, FONDS } from "@/components/PageBackground";
+import { PageBackground, FONDS, type Fond } from "@/components/PageBackground";
 import { SessionTimeout } from "@/components/SessionTimeout";
 import type { Profile } from "@/types/database";
 
@@ -37,7 +37,9 @@ export function AppShell({
     <div className="app-shell app-shell-photo">
       {/* Fond très atténué : sur un espace de travail, l'image doit se sentir
           plutôt que se voir — les tableaux et les boutons passent devant. */}
-      <PageBackground image={FONDS.calme} discret />
+      {/* Le fond choisi par la personne l'emporte sur celui de la plateforme.
+          La clé est validée à l'enregistrement, donc sûre à interpoler ici. */}
+      <PageBackground image={(profile.background_key as Fond | null) ?? FONDS.calme} discret />
       {/* Minuteur d'inactivité, suspendu pendant un cours en visioconférence. */}
       <SessionTimeout actif={!videoEnCours} />
       <Sidebar items={navItems} />

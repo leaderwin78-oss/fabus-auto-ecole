@@ -22,11 +22,15 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // meet.jit.si : la salle de cours en visioconférence charge son script
+      // externe et s'affiche dans une iframe (voir app/cours/[appointmentId]).
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://meet.jit.si",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
       "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
-      "img-src 'self' data: blob: https://*.supabase.co",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      "img-src 'self' data: blob: https://*.supabase.co https://meet.jit.si",
+      "media-src 'self' blob: https://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://meet.jit.si wss://meet.jit.si",
+      "frame-src 'self' https://meet.jit.si",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
