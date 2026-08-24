@@ -8,6 +8,15 @@
   --fabus-green: #059669;
   --fabus-green-light: #10b981;
   --fabus-green-dark: #047857;
+  --fabus-green-darker: #03634a;
+  /* Vert lisible en TEXTE : #059669 ne donne que 3,8:1 sur blanc. Le vert de
+     marque reste utilisé pour les aplats, bordures et icônes, où 3:1 suffit. */
+  --accent-text: #047857;
+  /* Le bouton principal a sa propre teinte : en clair il porte du texte blanc
+     (il doit donc être foncé), en sombre du texte foncé (il doit être vif).
+     Une seule variable partout évite de refaire ce raisonnement à chaque usage. */
+  --btn-primary-bg: #047857;
+  --btn-primary-bg-hover: #03634a;
   --fabus-turquoise: #0d9488;
   --fabus-turquoise-light: #14b8a6;
   --fabus-green-soft: rgba(5, 150, 105, 0.08);
@@ -21,7 +30,11 @@
   /* Text — Google's grey ramp */
   --text-primary: #202124;
   --text-secondary: #5f6368;
-  --text-muted: #80868b;
+  /* #80868b, la nuance « hint » de Google, ne donne que 3,7:1 sur blanc —
+     sous le seuil WCAG AA de 4,5:1 pour du texte courant. Or --text-muted
+     porte ici de vraies phrases (aides de formulaire, sous-titres), pas
+     seulement des éléments désactivés. Assombri à 5,0:1. */
+  --text-muted: #6b7075;
 
   --border-color: #dadce0;
   --border-subtle: #e8eaed;
@@ -66,6 +79,10 @@
     --border-subtle: #1f1f1f;
     --fabus-green: #10b981;
     --fabus-green-dark: #059669;
+    --fabus-green-darker: #10b981;
+    --accent-text: #10b981;
+    --btn-primary-bg: #10b981;
+    --btn-primary-bg-hover: #34d399;
     --danger: #f28b82;
     --info: #8ab4f8;
     --warning: #fdd663;
@@ -88,6 +105,10 @@
   --border-subtle: #1f1f1f;
   --fabus-green: #10b981;
   --fabus-green-dark: #059669;
+  --fabus-green-darker: #10b981;
+  --accent-text: #10b981;
+  --btn-primary-bg: #10b981;
+  --btn-primary-bg-hover: #34d399;
   --danger: #f28b82;
   --info: #8ab4f8;
   --warning: #fdd663;
@@ -102,9 +123,15 @@ html[data-theme="dark"] { color-scheme: dark; }
 
 html, body { max-width: 100vw; }
 
+/* La couleur de fond vit sur <html> et non sur <body> : cela laisse la couche
+   d'image (z-index -1, voir .page-bg-layer) se peindre au-dessus du fond du
+   canevas mais sous tout le contenu. Sans ça, un fond opaque sur body
+   masquerait complètement l'image. */
+html { background-color: var(--bg-primary); }
+
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-primary);
+  background-color: transparent;
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -151,8 +178,13 @@ p { margin-bottom: 1rem; }
 .btn-sm { padding: 0.375rem 0.875rem; font-size: 0.8125rem; }
 .btn-lg { padding: 0.8125rem 2rem; font-size: 1rem; }
 
-.btn-primary { background-color: var(--fabus-green); color: #ffffff; }
-.btn-primary:hover:not(:disabled) { background-color: var(--fabus-green-dark); box-shadow: var(--shadow-sm); }
+/* Le vert de marque (#059669) ne donne que 3,8:1 avec du texte blanc : un
+   bouton doit rester lisible, on prend donc la nuance foncée pour le fond et
+   on garde le vert clair pour les bordures et les accents, où le seuil est
+   plus bas. En mode sombre le texte du bouton est foncé, le contraste passe
+   déjà largement. */
+.btn-primary { background-color: var(--btn-primary-bg); color: #ffffff; }
+.btn-primary:hover:not(:disabled) { background-color: var(--btn-primary-bg-hover); box-shadow: var(--shadow-sm); }
 :root[data-theme="dark"] .btn-primary { color: #06231a; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .btn-primary { color: #06231a; }
@@ -160,20 +192,20 @@ p { margin-bottom: 1rem; }
 
 .btn-secondary {
   background-color: var(--bg-primary);
-  color: var(--fabus-green);
+  color: var(--accent-text);
   border: 1px solid var(--border-color);
 }
 .btn-secondary:hover:not(:disabled) { background-color: var(--fabus-green-soft); border-color: var(--fabus-green); }
 
 .btn-outline {
   background-color: transparent;
-  color: var(--fabus-green);
+  color: var(--accent-text);
   border: 1px solid var(--border-color);
 }
 .btn-outline:hover:not(:disabled) { background-color: var(--fabus-green-soft); border-color: var(--fabus-green); }
 
 /* Google's lowest-emphasis action: text only, tinted background on hover */
-.btn-text { background: transparent; color: var(--fabus-green); }
+.btn-text { background: transparent; color: var(--accent-text); }
 .btn-text:hover:not(:disabled) { background-color: var(--fabus-green-soft); }
 
 .btn-danger { background-color: var(--danger); color: #ffffff; }
@@ -210,7 +242,7 @@ p { margin-bottom: 1rem; }
 
 .badge {
   display: inline-block; padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 500;
-  border-radius: var(--radius-full); background-color: var(--fabus-green-soft); color: var(--fabus-green);
+  border-radius: var(--radius-full); background-color: var(--fabus-green-soft); color: var(--accent-text);
   letter-spacing: 0.02em;
 }
 .badge-warning { background-color: rgba(249, 171, 0, 0.12); color: #b06000; }
@@ -234,7 +266,7 @@ p { margin-bottom: 1rem; }
 .navbar .container { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .nav-links { display: flex; gap: 1.75rem; align-items: center; }
 .nav-links a { font-weight: 500; font-size: 0.875rem; color: var(--text-secondary); font-family: var(--font-display); }
-.nav-links a:hover { color: var(--fabus-green); }
+.nav-links a:hover { color: var(--accent-text); }
 
 /* Wordmark — Google's logo treatment: display face, tight, not bold-heavy */
 .wordmark {
@@ -330,6 +362,7 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
 
 /* App shell (authenticated dashboards) */
 .app-shell { display: flex; min-height: 100vh; background-color: var(--bg-secondary); }
+.app-shell-photo { background-color: transparent; }
 .sidebar {
   width: 256px; background-color: var(--bg-primary); border-right: 1px solid var(--border-subtle);
   display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 10;
@@ -427,6 +460,9 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
   min-height: 100vh; display: flex; flex-direction: column;
   background: var(--bg-secondary);
 }
+/* Quand une photo est posée derrière, la coque doit être transparente pour la
+   laisser voir — le voile de la couche image fait déjà le travail de contraste. */
+.auth-shell-photo { background: transparent; }
 .auth-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.5rem; gap: 1rem;
@@ -462,13 +498,55 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
   font-size: 1.25rem; margin-bottom: 0.5rem;
 }
 .role-card .role-art {
-  width: 100%; background: var(--bg-secondary); border-radius: var(--radius-md);
-  padding: 0.75rem; margin-bottom: 1rem;
+  width: 100%; background: transparent; border-radius: var(--radius-md);
+  padding: 0.75rem 0.75rem 0; margin-bottom: 0.75rem;
 }
 .role-card .role-art .illus { max-width: 100%; }
+
+/* La photo passe DERRIÈRE la carte-bouton, avec son propre voile : l'image
+   situe le parcours d'un coup d'œil, le texte et l'appel à l'action restent
+   au premier plan. La carte est cliquable en entier — c'est un bouton, il doit
+   donc réagir nettement au survol. */
+.role-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-width: 1.5px;
+}
+.role-card .role-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  opacity: 1;
+  transform: scale(1.02);
+  transition: transform var(--transition-normal), opacity var(--transition-normal);
+}
+.role-card .role-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--role-scrim);
+}
+:root { --role-scrim: linear-gradient(175deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.86) 42%, rgba(255,255,255,0.97) 62%, rgba(255,255,255,0.99) 100%); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --role-scrim: linear-gradient(175deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.84) 42%, rgba(0,0,0,0.96) 62%, rgba(0,0,0,0.99) 100%); }
+}
+:root[data-theme="dark"] { --role-scrim: linear-gradient(175deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.84) 42%, rgba(0,0,0,0.96) 62%, rgba(0,0,0,0.99) 100%); }
+
+.role-card:hover {
+  border-color: var(--fabus-green);
+  box-shadow: 0 0 0 3px var(--fabus-green-soft), var(--shadow-md);
+}
+.role-card:hover .role-photo { transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) {
+  .role-card .role-photo { transition: none; }
+  .role-card:hover .role-photo { transform: scale(1.02); }
+}
 .role-card h3 { font-size: 1.125rem; margin-bottom: 0.25rem; }
 .role-card p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem; flex: 1; }
-.role-card .role-cta { font-size: 0.875rem; font-weight: 500; color: var(--fabus-green); font-family: var(--font-display); }
+.role-card .role-cta { font-size: 0.875rem; font-weight: 500; color: var(--accent-text); font-family: var(--font-display); }
 
 /* Wizard chrome */
 .wizard-progress {
@@ -522,6 +600,133 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
 
 @media (max-width: 768px) {
   .nav-links { display: none; }
+}
+
+/* ==========================================================================
+   Images de fond
+   Une photo derrière l'interface ne doit jamais coûter en lisibilité. Trois
+   couches : l'image, un voile qui ramène le contraste du texte au niveau du
+   fond uni, et des surfaces translucides floutées pour les cartes. Les valeurs
+   de voile sont volontairement élevées — l'image reste une texture, pas un
+   décor qui se dispute l'attention avec les boutons.
+   ========================================================================== */
+.page-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--bg-img);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+/* Le voile est un pseudo-élément de la couche : il suit l'image partout. */
+.page-bg-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--page-scrim);
+}
+
+:root {
+  /* Voile clair : la photo transparaît juste assez pour se deviner. */
+  --page-scrim: linear-gradient(rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.97));
+  --page-scrim-fort: linear-gradient(rgba(255, 255, 255, 0.965), rgba(255, 255, 255, 0.985));
+  --surface-glass: rgba(255, 255, 255, 0.86);
+  --surface-glass-fort: rgba(255, 255, 255, 0.94);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-scrim: linear-gradient(rgba(0, 0, 0, 0.90), rgba(0, 0, 0, 0.95));
+    --page-scrim-fort: linear-gradient(rgba(0, 0, 0, 0.945), rgba(0, 0, 0, 0.975));
+    --surface-glass: rgba(10, 10, 10, 0.84);
+    --surface-glass-fort: rgba(10, 10, 10, 0.93);
+  }
+}
+:root[data-theme="dark"] {
+  --page-scrim: linear-gradient(rgba(0, 0, 0, 0.90), rgba(0, 0, 0, 0.95));
+  --page-scrim-fort: linear-gradient(rgba(0, 0, 0, 0.945), rgba(0, 0, 0, 0.975));
+  --surface-glass: rgba(10, 10, 10, 0.84);
+  --surface-glass-fort: rgba(10, 10, 10, 0.93);
+}
+
+/* Variante discrète, pour les pages de travail (tableaux de bord) où l'image
+   ne doit être qu'une nuance. */
+.page-bg-layer.discret::after { background: var(--page-scrim-fort); }
+
+/* Les surfaces posées sur une image deviennent translucides et floutées :
+   le texte garde son contraste quelle que soit la photo dessous. */
+body:has(.page-bg-layer) .card,
+body:has(.page-bg-layer) .auth-card,
+body:has(.page-bg-layer) .table-wrap,
+body:has(.page-bg-layer) .dash-banner {
+  background-color: var(--surface-glass-fort);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+}
+body:has(.page-bg-layer) .navbar,
+body:has(.page-bg-layer) .sidebar,
+body:has(.page-bg-layer) .auth-topbar {
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+}
+
+/* ==========================================================================
+   Boutons — présence et animation
+   Bordure colorée pour marquer l'emprise, halo pulsé sur l'action principale,
+   reflet au survol. Tout est désactivé si le système demande moins d'animation.
+   ========================================================================== */
+.btn-primary {
+  border: 1px solid var(--fabus-green-dark);
+  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.25);
+}
+.btn-secondary, .btn-outline {
+  border: 1.5px solid var(--fabus-green);
+  color: var(--fabus-green);
+}
+.btn-secondary:hover:not(:disabled), .btn-outline:hover:not(:disabled) {
+  border-color: var(--fabus-green-dark);
+  box-shadow: 0 0 0 3px var(--fabus-green-soft);
+}
+
+/* Halo qui respire : attire l'œil sur l'action principale d'une page sans
+   bouger la mise en page (le halo est une ombre, il ne prend pas de place). */
+@keyframes halo-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5), 0 1px 2px rgba(5, 150, 105, 0.25); }
+  50%      { box-shadow: 0 0 0 9px rgba(5, 150, 105, 0), 0 1px 2px rgba(5, 150, 105, 0.25); }
+}
+.btn-pulse { animation: halo-pulse 2.6s ease-in-out infinite; }
+
+/* Reflet qui balaie le bouton au survol. */
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -130%;
+  width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+.btn-shine:hover::after, .btn-shine:focus-visible::after { animation: shine-sweep 0.8s ease; }
+@keyframes shine-sweep { to { left: 145%; } }
+
+/* La flèche avance au survol — signal de direction, pas de décoration. */
+.btn-arrow i, .role-cta i { transition: transform var(--transition-fast); }
+.btn-arrow:hover i, .role-card:hover .role-cta i { transform: translateX(4px); }
+
+/* Focus clavier toujours visible, y compris sur les fonds photo. */
+.btn:focus-visible, .choice:focus-visible, .role-card:focus-visible {
+  outline: 3px solid var(--fabus-green);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-pulse { animation: none; box-shadow: 0 0 0 3px var(--fabus-green-soft-strong); }
+  .btn-shine::after { display: none; }
+  .btn-arrow i, .role-cta i { transition: none; }
+  .page-bg-layer { background-attachment: scroll; }
 }
 
 /* ==========================================================================

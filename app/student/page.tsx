@@ -109,7 +109,7 @@ export default async function StudentDashboardPage() {
                   </div>
                   <h4 style={{ margin: 0, fontSize: "1.1rem" }}>{e.courseTitle}</h4>
                 </div>
-                <span style={{ fontWeight: 700, color: "var(--fabus-green)" }}>{e.percent}%</span>
+                <span style={{ fontWeight: 700, color: "var(--accent-text)" }}>{e.percent}%</span>
               </div>
               <div className="progress-container mb-4">
                 <div className="progress-bar" style={{ width: `${e.percent}%` }}></div>

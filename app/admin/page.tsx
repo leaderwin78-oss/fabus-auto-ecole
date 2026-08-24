@@ -48,7 +48,7 @@ export default async function AdminDashboardPage() {
         <div className="stat-label">Séances à venir</div>
       </div>
       <div className="card stat-tile" style={{ gridColumn: "1 / -1" }}>
-        <div className="stat-value" style={{ color: "var(--fabus-green)" }}>{revenue.toLocaleString("fr-FR")} F CFA</div>
+        <div className="stat-value" style={{ color: "var(--accent-text)" }}>{revenue.toLocaleString("fr-FR")} F CFA</div>
         <div className="stat-label">Chiffre d&apos;affaires encaissé</div>
       </div>
     </div>

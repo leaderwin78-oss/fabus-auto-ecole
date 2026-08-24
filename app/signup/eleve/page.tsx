@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { registerStudent } from "@/lib/actions/signup";
 import { AuthShell } from "@/components/AuthShell";
+import { PageBackground, FONDS } from "@/components/PageBackground";
 import {
   BirthDateSelects,
   Choice,
@@ -252,8 +253,8 @@ function StudentSignupForm() {
             <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} style={{ marginTop: 3 }} />
             <span className="text-sm">
               En créant un compte, j&apos;accepte les{" "}
-              <Link href="/conditions" style={{ color: "var(--fabus-green)", fontWeight: 500 }}>conditions générales</Link> et la{" "}
-              <Link href="/confidentialite" style={{ color: "var(--fabus-green)", fontWeight: 500 }}>politique de confidentialité</Link>.
+              <Link href="/conditions" style={{ color: "var(--accent-text)", fontWeight: 500 }}>conditions générales</Link> et la{" "}
+              <Link href="/confidentialite" style={{ color: "var(--accent-text)", fontWeight: 500 }}>politique de confidentialité</Link>.
             </span>
           </label>
         </WizardStep>
@@ -278,7 +279,7 @@ function StudentSignupForm() {
 
 export default function StudentSignupPage() {
   return (
-    <AuthShell action={<Link href="/signup" className="btn btn-secondary btn-sm">Changer de profil</Link>}>
+    <AuthShell background={<PageBackground image={FONDS.salleEleves} />} action={<Link href="/signup" className="btn btn-secondary btn-sm">Changer de profil</Link>}>
       <div className="auth-split">
         <Suspense fallback={null}>
           <StudentSignupForm />

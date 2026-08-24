@@ -49,7 +49,7 @@ export default async function SuperAdminDashboardPage() {
         <div className="stat-label">Abonnements actifs</div>
       </div>
       <div className="card stat-tile" style={{ gridColumn: "1 / -1" }}>
-        <div className="stat-value" style={{ color: "var(--fabus-green)" }}>{revenue.toLocaleString("fr-FR")} F CFA</div>
+        <div className="stat-value" style={{ color: "var(--accent-text)" }}>{revenue.toLocaleString("fr-FR")} F CFA</div>
         <div className="stat-label">Chiffre d&apos;affaires plateforme (tous paiements réussis)</div>
       </div>
     </div>

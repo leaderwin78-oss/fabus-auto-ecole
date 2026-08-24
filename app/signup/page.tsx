@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { AuthShell } from "@/components/AuthShell";
 import { PHOTOS } from "@/lib/photos";
+import { PageBackground, FONDS } from "@/components/PageBackground";
 import {
   SignupStudentIllustration,
   SignupSchoolIllustration,
@@ -29,6 +30,7 @@ export default async function SignupRolePage({
   const roles = [
     {
       href: `/signup/eleve${suffix}`,
+      photo: FONDS.salleEleves,
       art: <SignupStudentIllustration />,
       title: "Élève",
       description:
@@ -37,6 +39,7 @@ export default async function SignupRolePage({
     },
     {
       href: `/signup/auto-ecole${suffix}`,
+      photo: FONDS.ville,
       art: <SignupSchoolIllustration />,
       title: "Auto-école",
       description:
@@ -45,6 +48,7 @@ export default async function SignupRolePage({
     },
     {
       href: `/signup/moniteur${suffix}`,
+      photo: FONDS.moniteur,
       art: <SignupInstructorIllustration />,
       title: "Moniteur",
       description:
@@ -55,6 +59,7 @@ export default async function SignupRolePage({
 
   return (
     <AuthShell
+      background={<PageBackground image={FONDS.route} />}
       action={
         <Link href="/login" className="btn btn-secondary btn-sm">
           Se connecter
@@ -84,6 +89,11 @@ export default async function SignupRolePage({
         <div className="role-grid">
           {roles.map((role) => (
             <Link key={role.href} href={role.href} className="role-card">
+              <span
+                className="role-photo"
+                aria-hidden="true"
+                style={{ backgroundImage: `url(/images/bg/${role.photo}@800.webp)` }}
+              />
               <div className="role-art">{role.art}</div>
               <h3>{role.title}</h3>
               <p>{role.description}</p>

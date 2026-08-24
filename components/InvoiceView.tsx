@@ -27,7 +27,7 @@ export function InvoiceView({ invoice }: { invoice: InvoiceData }) {
       <div className="card invoice-card" style={{ maxWidth: 640, margin: "0 auto", padding: "3rem" }}>
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h2 className="mb-0" style={{ color: "var(--fabus-green)" }}>{invoice.organization.name}</h2>
+            <h2 className="mb-0" style={{ color: "var(--accent-text)" }}>{invoice.organization.name}</h2>
             <p className="text-sm text-muted-color mb-0">{invoice.organization.city}</p>
             {invoice.organization.phone && <p className="text-sm text-muted-color mb-0">{invoice.organization.phone}</p>}
             {invoice.organization.email && <p className="text-sm text-muted-color mb-0">{invoice.organization.email}</p>}
@@ -57,7 +57,7 @@ export function InvoiceView({ invoice }: { invoice: InvoiceData }) {
 
         <div className="flex justify-between items-center" style={{ borderTop: "2px solid var(--text-primary)", paddingTop: "1rem" }}>
           <span style={{ fontWeight: 700 }}>Total payé</span>
-          <span style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--fabus-green)" }}>
+          <span style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--accent-text)" }}>
             {invoice.amount_fcfa.toLocaleString("fr-FR")} F CFA
           </span>
         </div>

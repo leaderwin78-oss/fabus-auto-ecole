@@ -1,6 +1,7 @@
 import { Sidebar, type NavItem } from "@/components/Sidebar";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PageBackground, FONDS } from "@/components/PageBackground";
 import type { Profile } from "@/types/database";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -29,7 +30,10 @@ export function AppShell({
   const initial = profile.full_name?.charAt(0)?.toUpperCase() || "?";
 
   return (
-    <div className="app-shell">
+    <div className="app-shell app-shell-photo">
+      {/* Fond très atténué : sur un espace de travail, l'image doit se sentir
+          plutôt que se voir — les tableaux et les boutons passent devant. */}
+      <PageBackground image={FONDS.calme} discret />
       <Sidebar items={navItems} />
       <main className="main-content">
         <header className="topbar animate-fade-up">

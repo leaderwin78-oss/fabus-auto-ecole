@@ -7,12 +7,16 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 export function AuthShell({
   children,
   action,
+  background,
 }: {
   children: React.ReactNode;
   action?: React.ReactNode;
+  /** Photo de fond posée derrière un voile de contraste (voir PageBackground). */
+  background?: React.ReactNode;
 }) {
   return (
-    <div className="auth-shell">
+    <div className={`auth-shell${background ? " auth-shell-photo" : ""}`}>
+      {background}
       <header className="auth-topbar">
         <Link href="/" className="wordmark">
           <i className="fa-solid fa-car-side"></i> L&apos;Auto École

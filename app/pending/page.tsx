@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AuthShell } from "@/components/AuthShell";
+import { PageBackground, FONDS } from "@/components/PageBackground";
 import { WaitingIllustration, RejectedIllustration } from "@/components/illustrations/Illustrations";
 
 // The waiting room. Middleware sends anyone here whose account OR whose
@@ -28,6 +29,7 @@ export default async function PendingPage() {
 
   return (
     <AuthShell
+      background={<PageBackground image={FONDS.calme} />}
       action={
         <form action="/auth/signout" method="post">
           <button type="submit" className="btn btn-secondary btn-sm">

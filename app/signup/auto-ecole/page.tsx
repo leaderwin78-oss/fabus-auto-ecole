@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { applyAsSchool } from "@/lib/actions/organizations";
 import { AuthShell } from "@/components/AuthShell";
+import { PageBackground, FONDS } from "@/components/PageBackground";
 import { Choice, ReviewRow, WizardNav, WizardProgress, WizardStep } from "@/components/Wizard";
 import { SignupSchoolIllustration } from "@/components/illustrations/Illustrations";
 
@@ -318,8 +319,8 @@ function SchoolSignupForm() {
             <input type="checkbox" checked={form.terms_accepted} onChange={(e) => update("terms_accepted", e.target.checked)} style={{ marginTop: 3 }} />
             <span className="text-sm">
               J&apos;accepte les{" "}
-              <Link href="/conditions" style={{ color: "var(--fabus-green)", fontWeight: 500 }}>conditions générales</Link> et la{" "}
-              <Link href="/confidentialite" style={{ color: "var(--fabus-green)", fontWeight: 500 }}>politique de confidentialité</Link>.
+              <Link href="/conditions" style={{ color: "var(--accent-text)", fontWeight: 500 }}>conditions générales</Link> et la{" "}
+              <Link href="/confidentialite" style={{ color: "var(--accent-text)", fontWeight: 500 }}>politique de confidentialité</Link>.
             </span>
           </label>
         </WizardStep>
@@ -344,7 +345,7 @@ function SchoolSignupForm() {
 
 export default function SchoolSignupPage() {
   return (
-    <AuthShell action={<Link href="/signup" className="btn btn-secondary btn-sm">Changer de profil</Link>}>
+    <AuthShell background={<PageBackground image={FONDS.ville} />} action={<Link href="/signup" className="btn btn-secondary btn-sm">Changer de profil</Link>}>
       <div className="auth-split">
         <Suspense fallback={null}>
           <SchoolSignupForm />

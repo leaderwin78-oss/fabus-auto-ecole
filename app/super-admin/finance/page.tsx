@@ -38,7 +38,7 @@ export default async function FinanceDashboardPage() {
           <div className="stat-label">Volume total traité</div>
         </div>
         <div className="card stat-tile">
-          <div className="stat-value" style={{ color: "var(--fabus-green)" }}>{totalCommission.toLocaleString("fr-FR")} F</div>
+          <div className="stat-value" style={{ color: "var(--accent-text)" }}>{totalCommission.toLocaleString("fr-FR")} F</div>
           <div className="stat-label">Revenus plateforme</div>
         </div>
         <div className="card stat-tile">

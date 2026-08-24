@@ -59,12 +59,12 @@ export function WizardNav({
         <i className="fa-solid fa-arrow-left"></i> Retour
       </button>
       {isLast ? (
-        <button type="button" className="btn btn-primary btn-lg" onClick={onSubmit} disabled={submitting || nextDisabled}>
+        <button type="button" className="btn btn-primary btn-lg btn-pulse btn-shine" onClick={onSubmit} disabled={submitting || nextDisabled}>
           {submitting ? "Envoi..." : submitLabel}
         </button>
       ) : (
-        <button type="button" className="btn btn-primary btn-lg" onClick={onNext} disabled={submitting || nextDisabled}>
-          Suivant
+        <button type="button" className="btn btn-primary btn-lg btn-shine btn-arrow" onClick={onNext} disabled={submitting || nextDisabled}>
+          Suivant <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i>
         </button>
       )}
     </div>

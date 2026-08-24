@@ -33,7 +33,7 @@ export function SchoolPicker({ schools }: { schools: Organization[] }) {
           </option>
         ))}
       </select>
-      <button type="button" className="btn btn-primary btn-sm" onClick={go}>
+      <button type="button" className="btn btn-primary btn-sm btn-shine" onClick={go}>
         S&apos;inscrire
       </button>
     </div>

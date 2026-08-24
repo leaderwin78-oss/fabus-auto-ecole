@@ -36,11 +36,11 @@ export default function CreditsPage() {
               <p className="mb-0" style={{ fontWeight: 500 }}>{photo.title}</p>
               <p className="text-sm text-muted-color mb-2">par {photo.author}</p>
               <p className="text-sm mb-0">
-                <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--fabus-green)" }}>
+                <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-text)" }}>
                   Source
                 </a>
                 {" · "}
-                <a href={photo.licenceUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--fabus-green)" }}>
+                <a href={photo.licenceUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-text)" }}>
                   {photo.licence}
                 </a>
               </p>

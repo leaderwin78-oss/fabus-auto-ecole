@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AuthShell } from "@/components/AuthShell";
+import { PageBackground, FONDS } from "@/components/PageBackground";
 
 function LoginForm() {
   const router = useRouter();
@@ -84,7 +85,7 @@ function LoginForm() {
             </button>
           </div>
         </div>
-        <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
+        <button type="submit" className="btn btn-primary btn-lg w-full btn-shine btn-pulse" disabled={loading}>
           {loading ? "Connexion..." : "Se connecter"}
         </button>
       </form>
@@ -98,7 +99,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <AuthShell action={<Link href="/signup" className="btn btn-secondary btn-sm">Créer un compte</Link>}>
+    <AuthShell background={<PageBackground image={FONDS.calme} />} action={<Link href="/signup" className="btn btn-secondary btn-sm">Créer un compte</Link>}>
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>

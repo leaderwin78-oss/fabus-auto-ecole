@@ -10,6 +10,7 @@ import {
   SignupSchoolIllustration,
   SignupInstructorIllustration,
 } from "@/components/illustrations/Illustrations";
+import { PageBackground, FONDS } from "@/components/PageBackground";
 import type { Organization } from "@/types/database";
 
 async function getActiveSchools(): Promise<Organization[]> {
@@ -51,6 +52,11 @@ export default async function LandingPage() {
 
   return (
     <>
+      {/* Route dégagée et panneaux : aucune personne, aucun texte incrusté —
+          c'est le fond le plus neutre des six, donc celui qui gêne le moins
+          la lecture sur une page aussi dense que l'accueil. */}
+      <PageBackground image={FONDS.route} />
+
       <nav className="navbar">
         <div className="container">
           <Link href="/" className="wordmark">
@@ -66,7 +72,7 @@ export default async function LandingPage() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link href="/login" className="btn btn-text btn-sm">Se connecter</Link>
-            <Link href="/signup" className="btn btn-primary btn-sm">S&apos;inscrire</Link>
+            <Link href="/signup" className="btn btn-primary btn-sm btn-shine">S&apos;inscrire</Link>
           </div>
         </div>
       </nav>
@@ -86,7 +92,7 @@ export default async function LandingPage() {
         </div>
 
         <div className="hero-actions animate-fade-up delay-300">
-          <Link href="/signup" className="btn btn-secondary">Créer un compte</Link>
+          <Link href="/signup" className="btn btn-secondary btn-shine btn-arrow">Créer un compte <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i></Link>
           <a href="#ecoles" className="btn btn-secondary">Voir les auto-écoles</a>
         </div>
 
@@ -167,7 +173,7 @@ export default async function LandingPage() {
                     {school.city ?? "Sénégal"}
                   </span>
                   <h3 style={{ fontSize: "1.0625rem", marginBottom: "0.25rem" }}>{school.name}</h3>
-                  <span className="text-sm" style={{ color: "var(--fabus-green)", fontWeight: 500 }}>
+                  <span className="text-sm" style={{ color: "var(--accent-text)", fontWeight: 500 }}>
                     Rejoindre cette auto-école <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i>
                   </span>
                 </Link>
@@ -191,8 +197,8 @@ export default async function LandingPage() {
                 40 000 <span className="text-muted-color" style={{ fontSize: "1rem" }}>F CFA</span>
               </div>
               <ul className="mb-8" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--fabus-green)", marginRight: 10 }}></i> Accès illimité aux cours de code</li>
-                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--fabus-green)", marginRight: 10 }}></i> Examens blancs avec correction</li>
+                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--accent-text)", marginRight: 10 }}></i> Accès illimité aux cours de code</li>
+                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--accent-text)", marginRight: 10 }}></i> Examens blancs avec correction</li>
                 <li className="text-sm text-muted-color"><i className="fa-solid fa-xmark" style={{ marginRight: 10 }}></i> Frais d&apos;examen non inclus</li>
               </ul>
               <Link href="/signup/eleve" className="btn btn-secondary w-full">Choisir ce pack</Link>
@@ -205,11 +211,11 @@ export default async function LandingPage() {
                 130 000 <span className="text-muted-color" style={{ fontSize: "1rem" }}>F CFA</span>
               </div>
               <ul className="mb-8" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--fabus-green)", marginRight: 10 }}></i> Formation code complète</li>
-                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--fabus-green)", marginRight: 10 }}></i> 15 heures de conduite</li>
-                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--fabus-green)", marginRight: 10 }}></i> Suivi du dossier administratif</li>
+                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--accent-text)", marginRight: 10 }}></i> Formation code complète</li>
+                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--accent-text)", marginRight: 10 }}></i> 15 heures de conduite</li>
+                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--accent-text)", marginRight: 10 }}></i> Suivi du dossier administratif</li>
               </ul>
-              <Link href="/signup/eleve" className="btn btn-primary w-full">Commencer</Link>
+              <Link href="/signup/eleve" className="btn btn-primary w-full btn-pulse btn-shine">Commencer</Link>
             </div>
 
             <div className="card" style={{ display: "flex", flexDirection: "column" }}>
@@ -218,8 +224,8 @@ export default async function LandingPage() {
                 60 000 <span className="text-muted-color" style={{ fontSize: "1rem" }}>F CFA</span>
               </div>
               <ul className="mb-8" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--fabus-green)", marginRight: 10 }}></i> Pour les titulaires du permis</li>
-                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--fabus-green)", marginRight: 10 }}></i> 10 heures de conduite</li>
+                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--accent-text)", marginRight: 10 }}></i> Pour les titulaires du permis</li>
+                <li className="text-sm"><i className="fa-solid fa-check" style={{ color: "var(--accent-text)", marginRight: 10 }}></i> 10 heures de conduite</li>
               </ul>
               <Link href="/signup/eleve" className="btn btn-secondary w-full">Choisir ce pack</Link>
             </div>

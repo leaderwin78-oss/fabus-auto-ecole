@@ -20,7 +20,7 @@ export function LessonRow({ lesson, icon, completed }: { lesson: Lesson; icon: s
     <div style={{ border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", padding: "0.85rem 1rem" }}>
       <div className="flex items-center justify-between" style={{ cursor: "pointer" }} onClick={() => setOpen((o) => !o)}>
         <div className="flex items-center gap-2">
-          <i className={icon} style={{ color: "var(--fabus-green)" }}></i>
+          <i className={icon} style={{ color: "var(--accent-text)" }}></i>
           <span style={{ fontWeight: 500 }}>{lesson.title}</span>
         </div>
         {done ? (
