@@ -75,11 +75,17 @@ export default async function SignupRolePage({
               <span
                 className="role-photo"
                 aria-hidden="true"
-                style={{ backgroundImage: `url(/images/bg/${role.photo}@800.webp)` }}
+                style={{ backgroundImage: `image-set(url(/images/bg/${role.photo}@800.webp) 1x, url(/images/bg/${role.photo}@1200.webp) 2x)` }}
               />
               <div className="role-portrait">
                 {/* eslint-disable-next-line @next/next/no-img-element -- fusion « écran », incompatible avec l'optimisation de next/image */}
-                <img src={`/images/personnes/${role.portrait}@small.webp`} alt="" aria-hidden="true" />
+                <img
+                  src={`/images/personnes/${role.portrait}@450.webp`}
+                  srcSet={`/images/personnes/${role.portrait}@450.webp 450w, /images/personnes/${role.portrait}@900.webp 900w`}
+                  sizes="(max-width: 720px) 92vw, 300px"
+                  alt=""
+                  aria-hidden="true"
+                />
               </div>
               <h3>{role.title}</h3>
               <p>{role.description}</p>

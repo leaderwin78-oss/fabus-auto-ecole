@@ -34,7 +34,11 @@ export function PageBackground({ image, discret = false }: { image: Fond; discre
     <div
       aria-hidden="true"
       className={`page-bg-layer${discret ? " discret" : ""}`}
-      style={{ "--bg-img": `url(/images/bg/${image}.webp)` } as CSSProperties}
+      style={{
+        // image-set laisse le navigateur choisir selon la densité de l'écran :
+        // un téléphone 3× a besoin de bien plus de pixels qu'un ordinateur 1×.
+        "--bg-img": `image-set(url(/images/bg/${image}@800.webp) 1x, url(/images/bg/${image}.webp) 2x)`,
+      } as CSSProperties}
     />
   );
 }

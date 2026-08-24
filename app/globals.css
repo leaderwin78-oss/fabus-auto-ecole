@@ -443,6 +443,17 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
 .mobile-voile { display: none; }
 
 @media (max-width: 900px) {
+  /* Une cible de moins de 44 px se rate au doigt : on tape, rien ne se passe,
+     et l'application paraît ne pas répondre. */
+  .btn { min-height: 44px; padding-inline: 1.25rem; }
+  .btn-sm { min-height: 44px; font-size: var(--t-sm); }
+  .hero-search { padding: 0.5rem 0.75rem 0.5rem 1rem; }
+  .hero-search select { min-height: 44px; font-size: var(--t-base); }
+  .nav-item { min-height: 44px; }
+  .theme-toggle { width: 44px; height: 44px; }
+  .choice { min-height: 48px; }
+  .wizard-back { min-height: 44px; }
+
   .mobile-bar {
     display: flex;
     align-items: center;
@@ -658,6 +669,10 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
   z-index: -1;
   background-size: cover;
   background-position: center;
+  /* Sur mobile la carte occupe toute la largeur : à 390 px et 3× de densité
+     il faut ~1170 px réels, alors que la variante 800 en fournissait 800.
+     C'est ce qui rendait les cartes floues là où elles sont les plus grandes. */
+  image-rendering: auto;
   opacity: 1;
   transform: scale(1.02);
   transition: transform var(--transition-normal), opacity var(--transition-normal);
@@ -760,6 +775,12 @@ table.data-table tbody tr:hover { background: var(--bg-secondary); }
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+}
+/* Safari iOS gère mal background-attachment: fixed — le fond saute pendant le
+   défilement, et la page paraît bloquée. Sur tout appareil tactile on repasse
+   en défilement normal. */
+@media (hover: none), (max-width: 900px) {
+  .page-bg-layer { background-attachment: scroll; }
 }
 /* Le voile est un pseudo-élément de la couche : il suit l'image partout. */
 .page-bg-layer::after {
