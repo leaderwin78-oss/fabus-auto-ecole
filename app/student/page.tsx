@@ -35,7 +35,6 @@ export default async function StudentDashboardPage() {
   return (
     <>
       <DashboardBanner
-        variant="student"
         title="Votre parcours vers le permis"
         subtitle="Révisez le code, réservez vos heures de conduite et suivez l'avancement de votre dossier."
       />

@@ -4,12 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { PHOTOS } from "@/lib/photos";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SchoolPicker } from "./SchoolPicker";
-import {
-  HeroIllustration,
-  SignupStudentIllustration,
-  SignupSchoolIllustration,
-  SignupInstructorIllustration,
-} from "@/components/illustrations/Illustrations";
 import { PageBackground, FONDS } from "@/components/PageBackground";
 import type { Organization } from "@/types/database";
 
@@ -96,9 +90,6 @@ export default async function LandingPage() {
           <a href="#ecoles" className="btn btn-secondary">Voir les auto-écoles</a>
         </div>
 
-        <div className="animate-fade-up delay-400" style={{ width: "100%", maxWidth: 440, marginTop: "3rem" }}>
-          <HeroIllustration />
-        </div>
       </section>
 
       {/* A real Dakar street: the traffic our students actually learn to drive in. */}
@@ -256,19 +247,31 @@ export default async function LandingPage() {
           </div>
           <div className="role-grid" style={{ maxWidth: 980, margin: "0 auto" }}>
             <Link href="/signup/eleve" className="role-card">
-              <div className="role-art"><SignupStudentIllustration /></div>
+              <span className="role-photo" aria-hidden="true" style={{ backgroundImage: "url(/images/bg/salle-eleves@800.webp)" }} />
+              <div className="role-portrait">
+                {/* eslint-disable-next-line @next/next/no-img-element -- fusion « écran », incompatible avec next/image */}
+                <img src="/images/personnes/eleve@small.webp" alt="" aria-hidden="true" />
+              </div>
               <h3>Je suis élève</h3>
               <p>Je veux passer mon permis et suivre ma formation en ligne.</p>
               <span className="role-cta">Créer mon compte <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i></span>
             </Link>
             <Link href="/signup/auto-ecole" className="role-card">
-              <div className="role-art"><SignupSchoolIllustration /></div>
+              <span className="role-photo" aria-hidden="true" style={{ backgroundImage: "url(/images/bg/ville-auto-ecole@800.webp)" }} />
+              <div className="role-portrait">
+                {/* eslint-disable-next-line @next/next/no-img-element -- fusion « écran », incompatible avec next/image */}
+                <img src="/images/personnes/auto-ecole@small.webp" alt="" aria-hidden="true" />
+              </div>
               <h3>Je dirige une auto-école</h3>
               <p>Je veux gérer mes élèves, mes moniteurs et mes paiements.</p>
               <span className="role-cta">Inscrire mon auto-école <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i></span>
             </Link>
             <Link href="/signup/moniteur" className="role-card">
-              <div className="role-art"><SignupInstructorIllustration /></div>
+              <span className="role-photo" aria-hidden="true" style={{ backgroundImage: "url(/images/bg/moniteur-voiture@800.webp)" }} />
+              <div className="role-portrait">
+                {/* eslint-disable-next-line @next/next/no-img-element -- fusion « écran », incompatible avec next/image */}
+                <img src="/images/personnes/moniteur@small.webp" alt="" aria-hidden="true" />
+              </div>
               <h3>Je suis moniteur</h3>
               <p>Je veux rejoindre l&apos;équipe d&apos;une auto-école partenaire.</p>
               <span className="role-cta">Envoyer ma candidature <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.75rem" }}></i></span>

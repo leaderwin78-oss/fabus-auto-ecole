@@ -7,7 +7,6 @@ import { applyAsSchool } from "@/lib/actions/organizations";
 import { AuthShell } from "@/components/AuthShell";
 import { PageBackground, FONDS } from "@/components/PageBackground";
 import { Choice, ReviewRow, WizardNav, WizardProgress, WizardStep } from "@/components/Wizard";
-import { SignupSchoolIllustration } from "@/components/illustrations/Illustrations";
 
 // Same step-by-step shape as the élève and moniteur wizards. A school's
 // questionnaire is the longest of the three — it creates the tenant itself —
@@ -351,7 +350,7 @@ export default function SchoolSignupPage() {
           <SchoolSignupForm />
         </Suspense>
         <aside className="auth-aside">
-          <SignupSchoolIllustration />
+          
           <p>
             Gérez vos élèves, vos moniteurs, vos cours et vos paiements depuis un seul espace. Votre demande est
             validée par notre équipe sous quelques jours.

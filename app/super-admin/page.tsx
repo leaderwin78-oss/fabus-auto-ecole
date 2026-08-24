@@ -27,7 +27,6 @@ export default async function SuperAdminDashboardPage() {
   return (
     <>
     <DashboardBanner
-      variant="super_admin"
       title="Vue d'ensemble de la plateforme"
       subtitle="Auto-écoles, utilisateurs, abonnements et recettes, toutes écoles confondues."
     />

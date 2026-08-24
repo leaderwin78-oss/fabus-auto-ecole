@@ -26,7 +26,6 @@ export default async function AdminDashboardPage() {
   return (
     <>
     <DashboardBanner
-      variant="admin"
       title="Pilotage de votre auto-école"
       subtitle="Vos élèves, vos moniteurs, vos formations et vos recettes en un coup d'œil."
     />

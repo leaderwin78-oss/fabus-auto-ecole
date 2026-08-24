@@ -3,7 +3,6 @@ import { requireProfile, isOrgStaffRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AuthShell } from "@/components/AuthShell";
 import { PageBackground, FONDS } from "@/components/PageBackground";
-import { WaitingIllustration, RejectedIllustration } from "@/components/illustrations/Illustrations";
 
 // The waiting room. Middleware sends anyone here whose account OR whose
 // auto-école has not been approved yet, and sends them away again the moment
@@ -24,7 +23,6 @@ export default async function PendingPage() {
   const orgSuspended = isStaff && org?.status === "suspended";
   const accountRejected = profile.status === "rejected";
 
-  const rejected = accountRejected || orgRejected;
   const firstName = profile.full_name.split(" ")[0];
 
   return (
@@ -39,10 +37,6 @@ export default async function PendingPage() {
       }
     >
       <div className="auth-card auth-card-wide text-center">
-        <div className="pending-art">
-          {rejected ? <RejectedIllustration /> : <WaitingIllustration />}
-        </div>
-
         {orgRejected ? (
           <>
             <h1 className="auth-title">Demande non retenue</h1>
@@ -84,7 +78,7 @@ export default async function PendingPage() {
         ) : orgPending ? (
           <>
             <span className="badge mb-4">Bienvenue sur L&apos;Auto École</span>
-            <h1 className="auth-title">Bonjour {firstName}, votre demande est bien arrivée 👋</h1>
+            <h1 className="auth-title">Bonjour {firstName}, votre demande est bien arrivée</h1>
             <p className="auth-subtitle">
               Merci d&apos;avoir inscrit <strong>{org?.name}</strong>. Notre équipe examine votre dossier — c&apos;est
               une simple vérification, et la très grande majorité des demandes sont acceptées.

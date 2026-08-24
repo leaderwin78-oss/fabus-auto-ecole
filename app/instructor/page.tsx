@@ -34,7 +34,6 @@ export default async function InstructorDashboardPage() {
   return (
     <>
       <DashboardBanner
-        variant="instructor"
         title="Votre journée de moniteur"
         subtitle="Vos séances du jour, vos élèves et votre planning à venir."
       />

@@ -18,7 +18,6 @@ import {
   formatBirthDate,
   toIsoDate,
 } from "@/components/Wizard";
-import { SignupStudentIllustration } from "@/components/illustrations/Illustrations";
 import type { Organization } from "@/types/database";
 
 // Adapted from Facebook's mobile signup: identity first (name, birthday,
@@ -285,7 +284,7 @@ export default function StudentSignupPage() {
           <StudentSignupForm />
         </Suspense>
         <aside className="auth-aside">
-          <SignupStudentIllustration />
+          
           <p>
             Révisez le code depuis votre téléphone, réservez vos heures de conduite et suivez votre dossier de permis
             en direct.

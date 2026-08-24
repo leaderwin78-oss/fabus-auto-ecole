@@ -38,7 +38,7 @@ export default async function StudentQuizzesPage() {
                 <h4 className="mb-2">{q.title}</h4>
                 {course && <p className="text-sm text-muted-color mb-2">{course.title}</p>}
                 <p className="text-sm text-muted-color mb-0">
-                  {best !== undefined ? `Meilleur score : ${best}% ${best >= q.pass_score_percent ? "✅" : ""}` : "Pas encore tenté"}
+                  {best !== undefined ? `Meilleur score : ${best} %` : "Pas encore tenté"}
                 </p>
               </Link>
             );

@@ -18,7 +18,7 @@ export default async function AssistantPage() {
       <Link href="/dashboard" className="text-sm text-muted-color mb-4" style={{ display: "inline-block" }}>
         <i className="fa-solid fa-arrow-left"></i> Retour au tableau de bord
       </Link>
-      <h2 className="mb-2">🤖 Assistant IA</h2>
+      <h2 className="mb-2">Assistant IA</h2>
       <p className="text-muted-color mb-8">{ROLE_GREETING[profile.role] ?? "Comment puis-je vous aider ?"}</p>
 
       <AssistantChat />

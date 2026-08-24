@@ -3,11 +3,6 @@ import Image from "next/image";
 import { AuthShell } from "@/components/AuthShell";
 import { PHOTOS } from "@/lib/photos";
 import { PageBackground, FONDS } from "@/components/PageBackground";
-import {
-  SignupStudentIllustration,
-  SignupSchoolIllustration,
-  SignupInstructorIllustration,
-} from "@/components/illustrations/Illustrations";
 
 // /signup is now a door chooser rather than a form. The three profiles need
 // genuinely different questionnaires (a moniteur has a licence number, a
@@ -31,7 +26,7 @@ export default async function SignupRolePage({
     {
       href: `/signup/eleve${suffix}`,
       photo: FONDS.salleEleves,
-      art: <SignupStudentIllustration />,
+      portrait: "eleve",
       title: "Élève",
       description:
         "Je veux passer mon permis : réviser le code en ligne, réserver mes heures de conduite et suivre mon dossier.",
@@ -40,7 +35,7 @@ export default async function SignupRolePage({
     {
       href: `/signup/auto-ecole${suffix}`,
       photo: FONDS.ville,
-      art: <SignupSchoolIllustration />,
+      portrait: "auto-ecole",
       title: "Auto-école",
       description:
         "Je dirige une auto-école et je veux gérer mes élèves, mes moniteurs, mes cours et mes paiements sur la plateforme.",
@@ -49,7 +44,7 @@ export default async function SignupRolePage({
     {
       href: `/signup/moniteur${suffix}`,
       photo: FONDS.moniteur,
-      art: <SignupInstructorIllustration />,
+      portrait: "moniteur",
       title: "Moniteur",
       description:
         "Je suis moniteur d'auto-école et je veux rejoindre l'équipe d'une auto-école déjà inscrite sur la plateforme.",
@@ -94,7 +89,10 @@ export default async function SignupRolePage({
                 aria-hidden="true"
                 style={{ backgroundImage: `url(/images/bg/${role.photo}@800.webp)` }}
               />
-              <div className="role-art">{role.art}</div>
+              <div className="role-portrait">
+                {/* eslint-disable-next-line @next/next/no-img-element -- fusion « écran », incompatible avec l'optimisation de next/image */}
+                <img src={`/images/personnes/${role.portrait}@small.webp`} alt="" aria-hidden="true" />
+              </div>
               <h3>{role.title}</h3>
               <p>{role.description}</p>
               <span className="role-cta">

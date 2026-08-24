@@ -1,13 +1,10 @@
-import { DashboardIllustration } from "@/components/illustrations/Illustrations";
-
-// Header strip at the top of each dashboard: a greeting, one line of context,
-// and the scene matching that role.
+// Bandeau en tête de tableau de bord : un titre et une ligne de contexte.
+// Les illustrations ont été retirées — l'emplacement visuel est libre pour les
+// visuels que fournira l'auto-école.
 export function DashboardBanner({
-  variant,
   title,
   subtitle,
 }: {
-  variant: "student" | "instructor" | "admin" | "super_admin";
   title: string;
   subtitle: string;
 }) {
@@ -16,9 +13,6 @@ export function DashboardBanner({
       <div className="dash-banner-text">
         <h3>{title}</h3>
         <p>{subtitle}</p>
-      </div>
-      <div className="dash-banner-art" aria-hidden="true">
-        <DashboardIllustration variant={variant} />
       </div>
     </section>
   );

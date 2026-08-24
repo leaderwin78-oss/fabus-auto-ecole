@@ -23,7 +23,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const videoEnCours = await coursVideoEnCours(await createClient(), userId);
 
   return (
-    <AppShell videoEnCours={videoEnCours} profile={profile} userId={userId} navItems={NAV_ITEMS} title={`Bonjour ${profile.full_name.split(" ")[0]} 👋`}>
+    <AppShell videoEnCours={videoEnCours} profile={profile} userId={userId} navItems={NAV_ITEMS} title={`Bonjour ${profile.full_name.split(" ")[0]}`}>
       {children}
     </AppShell>
   );

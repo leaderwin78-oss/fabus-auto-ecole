@@ -18,7 +18,6 @@ import {
   formatBirthDate,
   toIsoDate,
 } from "@/components/Wizard";
-import { SignupInstructorIllustration } from "@/components/illustrations/Illustrations";
 import type { Organization } from "@/types/database";
 
 // Same one-question-per-screen shape as the student wizard, plus the
@@ -326,7 +325,7 @@ export default function InstructorSignupPage() {
           <InstructorSignupForm />
         </Suspense>
         <aside className="auth-aside">
-          <SignupInstructorIllustration />
+          
           <p>
             Rejoignez une auto-école partenaire, gérez votre planning de séances et suivez la progression de vos
             élèves.
