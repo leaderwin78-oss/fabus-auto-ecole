@@ -98,7 +98,7 @@ export async function updateSession(request: NextRequest) {
   if (pathname !== "/change-password" && pathname !== "/auth/signout") {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, must_change_password, status, organizations(status)")
+      .select("role, must_change_password, status, organization_id, organizations(status)")
       .eq("id", user.id)
       .single();
 
@@ -122,6 +122,20 @@ export async function updateSession(request: NextRequest) {
     // dashboard full of empty tables.
     if (held && pathname !== "/pending") {
       return NextResponse.redirect(new URL("/pending", request.url));
+    }
+
+    // Abonnement échu au-delà du délai de grâce : l'encadrement de l'école est
+    // renvoyé vers la page de renouvellement. Les élèves et les moniteurs ne
+    // sont pas punis pour un impayé qui ne les concerne pas — ils gardent leur
+    // accès, c'est la direction qui doit régulariser.
+    if (!held && profile && (profile.role === "admin" || profile.role === "admin_auto_ecole")) {
+      const echappatoires = ["/abonnement", "/account", "/auth/signout"];
+      if (!echappatoires.some((e) => pathname.startsWith(e))) {
+        const { data: etat } = await supabase.rpc("etat_abonnement", { p_org: (profile as { organization_id?: string }).organization_id ?? null });
+        if (etat === "expire") {
+          return NextResponse.redirect(new URL("/abonnement", request.url));
+        }
+      }
     }
     if (profile && !held && pathname === "/pending") {
       return NextResponse.redirect(new URL(ROLE_HOME[profile.role] ?? "/dashboard", request.url));

@@ -1098,3 +1098,35 @@ body:has(.page-bg-layer) .auth-topbar {
 .step.current .step-dot { background: var(--fabus-green-soft-strong); color: var(--fabus-green); }
 .step-title { font-weight: 500; font-family: var(--font-display); margin-bottom: 0.125rem; font-size: 0.9375rem; }
 .step-help { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0; }
+
+/* ==========================================================================
+   Abonnement
+   ========================================================================== */
+.bandeau-abo {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+  padding: 0.875rem 1.25rem; margin-bottom: 1.5rem;
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--warning);
+  background: rgba(249, 171, 0, 0.10);
+}
+.bandeau-abo-urgent { border-left-color: var(--danger); background: rgba(217, 48, 37, 0.10); }
+.bandeau-abo-titre { font-weight: 600; font-family: var(--font-display); margin-bottom: 0.125rem; }
+.bandeau-abo-detail { font-size: var(--t-sm); color: var(--text-secondary); margin-bottom: 0; max-width: 62ch; }
+
+.formules { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1.5rem; }
+@media (min-width: 640px) { .formules { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); } }
+.formule {
+  border: 1.5px solid var(--border-color); border-radius: var(--radius-lg);
+  padding: 1.5rem; background: var(--bg-primary);
+  display: flex; flex-direction: column;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.formule:hover { border-color: var(--fabus-green); box-shadow: var(--shadow-sm); }
+.formule-prix {
+  font-family: var(--font-display); font-size: var(--t-2xl); font-weight: 400;
+  letter-spacing: -0.025em; margin-bottom: 1rem; font-variant-numeric: tabular-nums;
+}
+.formule-prix span { font-size: var(--t-sm); color: var(--text-secondary); letter-spacing: 0; }
+.formule-liste { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; flex: 1; font-size: var(--t-sm); }
+.formule-liste i { color: var(--accent-text); margin-right: 0.5rem; }

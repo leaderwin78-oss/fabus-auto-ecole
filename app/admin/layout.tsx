@@ -2,6 +2,8 @@ import { AppShell } from "@/components/AppShell";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { coursVideoEnCours } from "@/lib/data/session";
+import { lireAbonnement } from "@/lib/data/abonnement";
+import { BandeauAbonnement } from "@/components/BandeauAbonnement";
 import type { NavItem } from "@/components/Sidebar";
 
 const NAV_ITEMS: NavItem[] = [
@@ -21,10 +23,15 @@ const NAV_ITEMS: NavItem[] = [
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { userId, profile } = await requireProfile();
-  const videoEnCours = await coursVideoEnCours(await createClient(), userId);
+  const supabase = await createClient();
+  const [videoEnCours, abonnement] = await Promise.all([
+    coursVideoEnCours(supabase, userId),
+    lireAbonnement(supabase, profile.organization_id),
+  ]);
 
   return (
     <AppShell videoEnCours={videoEnCours} profile={profile} userId={userId} navItems={NAV_ITEMS} title="Espace Administrateur">
+      <BandeauAbonnement abonnement={abonnement} />
       {children}
     </AppShell>
   );
